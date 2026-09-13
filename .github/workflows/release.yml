@@ -27,14 +27,27 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x gradlew
 
+      - name: Validate release secrets
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
+          test -n "$KEYSTORE_PASSWORD" || { echo "Missing KEYSTORE_PASSWORD"; exit 1; }
+          test -n "$KEY_ALIAS" || { echo "Missing KEY_ALIAS"; exit 1; }
+          test -n "$KEY_PASSWORD" || { echo "Missing KEY_PASSWORD"; exit 1; }
+          test -n "$RELEASE_REPO_TOKEN" || { echo "Missing RELEASE_REPO_TOKEN"; exit 1; }
+
       - name: Decode Android signing keystore
         shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "Missing ANDROID_KEYSTORE_BASE64 secret"
-            exit 1
-          fi
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/kacperkapi-release.jks"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/kacperkapi-release.jks"
 
       - name: Build signed release APK
         env:
@@ -44,12 +57,17 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew clean assembleRelease
 
-      - name: Prepare APK
+      - name: Prepare and verify APK
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-release.apk "dist/KacperKapi-v${VERSION}.apk"
+          APK_PATH="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' | head -n 1)"
+          test -n "$APK_PATH" || { echo "Release APK not found"; find app/build/outputs/apk -type f -maxdepth 4 || true; exit 1; }
+          cp "$APK_PATH" "dist/KacperKapi-v${VERSION}.apk"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER" || { echo "apksigner not found"; exit 1; }
+          "$APKSIGNER" verify --verbose --print-certs "dist/KacperKapi-v${VERSION}.apk"
 
       - name: Publish to kacpigame-release
         env:
