@@ -245,7 +245,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
                         screen = Screen.Worlds
                     } else {
                         val isAdventure = current.category == null
-                        val completedWell = result.correct >= 4
+                        val completedWell = result.correct >= 6
                         var unlockedWorld = progress.unlockedWorldId
                         val maxByWorld = progress.maxStageByWorld.toMutableMap()
                         val completed = progress.completedStageIds.toMutableSet()
