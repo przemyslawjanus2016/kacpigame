@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -140,6 +141,22 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
         val next = if (store.loadLanguage() == "en") "pl" else "en"
         store.saveLanguage(next)
         onLanguageChanged()
+    }
+
+    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash) {
+        screen = when (val current = screen) {
+            Screen.Splash -> Screen.Worlds
+            Screen.Worlds -> Screen.Worlds
+            is Screen.Map -> Screen.Worlds
+            is Screen.Story -> Screen.Map(current.worldId)
+            is Screen.Categories -> Screen.Map(current.worldId)
+            is Screen.Game -> if (current.daily) Screen.DailyIntro else Screen.Map(current.worldId)
+            Screen.DailyIntro -> Screen.Worlds
+            Screen.Passport -> Screen.Worlds
+            Screen.Rewards -> Screen.Worlds
+            Screen.Parent -> Screen.Worlds
+            Screen.Settings -> Screen.Worlds
+        }
     }
 
     when (val current = screen) {
