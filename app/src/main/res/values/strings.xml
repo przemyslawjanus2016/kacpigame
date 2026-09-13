@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Kacper i Kapi</string>
+    <string name="app_name">Kacper &amp; Kapi</string>
     <string name="game_subtitle">Matematyczna Przygoda</string>
     <string name="game_subtitle_v2">Edukacyjna Przygoda</string>
     <string name="small_tasks_big_discoveries">Małe zadania • Wielkie odkrycia</string>
