@@ -12,7 +12,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "pl.kacperikapi.mathadventure"
+        applicationId = "pl.janusdigital.kacperikapi"
         minSdk = 26
         targetSdk = 36
         versionCode = 18
