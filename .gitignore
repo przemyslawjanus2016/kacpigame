@@ -1,0 +1,24 @@
+.gradle/
+.idea/
+local.properties
+/build/
+/app/build/
+*.iml
+.DS_Store
+
+# Android signing - NEVER commit
+*.jks
+*.keystore
+keystore-base64.txt
+*.properties.local
+
+# Release signing / local secrets
+*.jks
+*.keystore
+keystore-base64.txt
+local.properties
+
+# Large design references are kept outside Git; runtime assets stay in app/src/main/res
+docs/*.png
+docs/*.jpg
+docs/*.jpeg

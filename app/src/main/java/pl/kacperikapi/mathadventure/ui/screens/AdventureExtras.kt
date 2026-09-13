@@ -1,0 +1,584 @@
+package pl.kacperikapi.mathadventure.ui.screens
+
+import android.speech.tts.TextToSpeech
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import pl.kacperikapi.mathadventure.R
+import pl.kacperikapi.mathadventure.BuildConfig
+import pl.kacperikapi.mathadventure.data.*
+import pl.kacperikapi.mathadventure.ui.components.ParchmentCard
+import pl.kacperikapi.mathadventure.ui.components.WikimediaPhoto
+import pl.kacperikapi.mathadventure.ui.components.PrimaryGameButton
+import pl.kacperikapi.mathadventure.ui.theme.*
+import pl.kacperikapi.mathadventure.update.GitHubUpdateManager
+import java.time.LocalDate
+import kotlinx.coroutines.launch
+import java.util.Locale
+
+@Composable
+fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
+    val language = LocalConfiguration.current.locales[0].language
+    val context = LocalContext.current
+    val world = GameContent.world(stage.worldId)
+    val story = GameContent.story(stage)
+    val attraction = AttractionContent.forStage(stage)
+    var resolvedAttribution by remember(stage.id) { mutableStateOf<CommonsPhotoAttribution?>(null) }
+
+    var ttsReady by remember { mutableStateOf(false) }
+    val ttsHolder = remember { mutableStateOf<TextToSpeech?>(null) }
+
+    DisposableEffect(language) {
+        val engine = TextToSpeech(context.applicationContext) { status ->
+            ttsReady = status == TextToSpeech.SUCCESS
+        }
+        ttsHolder.value = engine
+        onDispose {
+            engine.stop()
+            engine.shutdown()
+            if (ttsHolder.value === engine) ttsHolder.value = null
+        }
+    }
+
+    val readAloud: () -> Unit = {
+        val spoken = if (attraction != null) {
+            "${stage.name(language)}. ${attraction.description(language)}. ${attraction.fact(language)}"
+        } else {
+            "${story.title(language)}. ${story.text(language)}. ${story.fact(language)}"
+        }
+        ttsHolder.value?.let { engine ->
+            engine.language = if (language == "en") Locale.UK else Locale("pl", "PL")
+            engine.setSpeechRate(0.92f)
+            engine.speak(spoken, TextToSpeech.QUEUE_FLUSH, null, "attraction-${stage.id}")
+        }
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(SkyBlue.copy(.22f), Cream, Parchment)))
+            .statusBarsPadding()
+    ) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(Modifier.fillMaxWidth().widthIn(max = 900.dp), verticalAlignment = Alignment.CenterVertically) {
+                FilledTonalButton(onClick = onBack) {
+                    Text("← ${stringResource(R.string.back)}")
+                }
+                Spacer(Modifier.weight(1f))
+                Surface(shape = CircleShape, color = Parchment) {
+                    Text(
+                        "${world.icon} ${stage.number}/10",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            Text(
+                text = if (language == "en") "📍 Discover this place" else "📍 Poznaj to miejsce",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Black,
+                color = AdventureGreen,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                stage.name(language),
+                fontSize = 31.sp,
+                fontWeight = FontWeight.Black,
+                color = Ink,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 900.dp)) {
+                if (attraction != null) {
+                    WikimediaPhoto(
+                        fileName = attraction.photoFileName,
+                        searchQuery = attraction.photoSearchQuery,
+                        contentDescription = stage.name(language),
+                        fallbackRes = world.heroArtRes,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(16f / 9f),
+                        onAttribution = { resolvedAttribution = it }
+                    )
+
+                    Spacer(Modifier.height(7.dp))
+                    Text(
+                        resolvedAttribution?.credit(language) ?: attraction.credit(language),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = WoodBrown.copy(alpha = .82f)
+                    )
+
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        attraction.description(language),
+                        color = Ink,
+                        fontSize = 17.sp,
+                        lineHeight = 24.sp
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = StarYellow.copy(.20f)
+                    ) {
+                        Column(Modifier.padding(13.dp)) {
+                            Text(
+                                if (language == "en") "💡 Did you know?" else "💡 Czy wiesz, że?",
+                                fontWeight = FontWeight.Black,
+                                color = WoodBrown
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                attraction.fact(language),
+                                color = WoodBrown,
+                                fontWeight = FontWeight.SemiBold,
+                                lineHeight = 21.sp
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = AdventureGreen.copy(alpha = .10f)
+                    ) {
+                        Text(
+                            "🐾 ${story.text(language)}",
+                            modifier = Modifier.padding(12.dp),
+                            color = Ink
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        if (language == "en")
+                            "The real photo is downloaded the first time you open this card and then kept on the device for offline viewing."
+                        else
+                            "Prawdziwe zdjęcie jest pobierane przy pierwszym otwarciu tej karty, a potem zostaje na urządzeniu do oglądania offline.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = WoodBrown
+                    )
+                } else {
+                    Text(
+                        "${story.emoji} ${story.title(language)}",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        color = AdventureGreen
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(story.text(language), color = Ink, fontSize = 17.sp)
+                    Spacer(Modifier.height(12.dp))
+                    Surface(shape = RoundedCornerShape(16.dp), color = StarYellow.copy(.18f)) {
+                        Text(
+                            "💡 ${story.fact(language)}",
+                            modifier = Modifier.padding(12.dp),
+                            color = WoodBrown,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = readAloud,
+                        enabled = ttsReady,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(if (language == "en") "🔊 Listen" else "🔊 Posłuchaj")
+                    }
+                    Box(Modifier.weight(1.25f)) {
+                        PrimaryGameButton(
+                            stringResource(R.string.start_mission),
+                            onStart,
+                            Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+fun PassportScreen(progress: GameProgress, onBack: () -> Unit) {
+    val language = LocalConfiguration.current.locales[0].language
+    Box(
+        Modifier.fillMaxSize()
+            .background(Brush.verticalGradient(listOf(SkyBlue.copy(.25f), Cream, Parchment)))
+            .statusBarsPadding()
+    ) {
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(Modifier.fillMaxWidth()) { TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") } }
+            Text("🛂 ${stringResource(R.string.traveler_passport)}", fontSize = 30.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
+            Text(stringResource(R.string.passport_description), color = WoodBrown, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(16.dp))
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 760.dp)) {
+                GameContent.worlds.forEach { world ->
+                    val completed = progress.isWorldCompleted(world.id)
+                    Surface(
+                        Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                        shape = RoundedCornerShape(18.dp),
+                        color = if (completed) BrightGreen.copy(.14f) else LockedGrey.copy(.10f)
+                    ) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (world.thumbnailRes != null) {
+                                Image(
+                                    painter = painterResource(world.thumbnailRes),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(62.dp).clip(RoundedCornerShape(13.dp))
+                                )
+                            } else Text(world.icon, fontSize = 32.sp)
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(stringResource(world.nameRes), fontWeight = FontWeight.Black, fontSize = 18.sp)
+                                Text(world.subtitle(language), color = WoodBrown, style = MaterialTheme.typography.bodySmall)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(if (completed) "✅" else "◯", fontSize = 26.sp)
+                                Text(if (completed) stringResource(R.string.stamp_earned) else stringResource(R.string.stamp_waiting), style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+fun DailyMissionIntroScreen(progress: GameProgress, onStart: () -> Unit, onBack: () -> Unit) {
+    val today = LocalDate.now().toString()
+    val completedToday = progress.dailyLastCompletedDate == today
+    Box(
+        Modifier.fillMaxSize()
+            .background(Brush.verticalGradient(listOf(SkyBlue.copy(.25f), Cream, Parchment)))
+            .statusBarsPadding()
+    ) {
+        Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(Modifier.fillMaxWidth()) { TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") } }
+            Spacer(Modifier.height(20.dp))
+            Text("🎁", fontSize = 70.sp)
+            Text(stringResource(R.string.daily_mission), fontSize = 34.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
+            Text(stringResource(R.string.daily_mission_desc), color = WoodBrown, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(18.dp))
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 620.dp)) {
+                Text("🔥 ${stringResource(R.string.current_streak)}: ${progress.dailyStreak}", fontSize = 22.sp, fontWeight = FontWeight.Black, color = ActionOrange)
+                Text("🏆 ${stringResource(R.string.daily_completed_total)}: ${progress.totalDailyMissions}", fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(12.dp))
+                val items = listOf(
+                    "➕ ${stringResource(R.string.category_math)}",
+                    "🧠 ${stringResource(R.string.category_logic)}",
+                    "🇬🇧 ${stringResource(R.string.category_english)}",
+                    "🌍 ${stringResource(R.string.category_world)}",
+                    "⏰ ${stringResource(R.string.category_daily)}"
+                )
+                items.forEach { Text("✓ $it", modifier = Modifier.padding(vertical = 3.dp)) }
+                Spacer(Modifier.height(14.dp))
+                if (completedToday) {
+                    Surface(shape = RoundedCornerShape(15.dp), color = BrightGreen.copy(.17f)) {
+                        Text("✅ ${stringResource(R.string.daily_done_today)}", modifier = Modifier.padding(12.dp), fontWeight = FontWeight.Bold, color = AdventureGreen)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+                PrimaryGameButton(
+                    if (completedToday) stringResource(R.string.play_again) else stringResource(R.string.start_daily),
+                    onStart,
+                    Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsScreen(
+    narratorEnabled: Boolean,
+    soundEnabled: Boolean,
+    onNarratorChanged: (Boolean) -> Unit,
+    onSoundChanged: (Boolean) -> Unit,
+    onLanguage: () -> Unit,
+    onResetAll: () -> Unit,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var confirmReset by remember { mutableStateOf(false) }
+    var resetDone by remember { mutableStateOf(false) }
+    var checkingUpdate by remember { mutableStateOf(false) }
+    var downloadingUpdate by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<GitHubUpdateManager.UpdateInfo?>(null) }
+    var updateStatus by remember { mutableStateOf<String?>(null) }
+    var downloadedApk by remember { mutableStateOf<java.io.File?>(null) }
+
+    if (confirmReset) {
+        AlertDialog(
+            onDismissRequest = { confirmReset = false },
+            title = { Text(stringResource(R.string.reset_all_data_title), fontWeight = FontWeight.Black) },
+            text = { Text(stringResource(R.string.reset_all_data_message)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        confirmReset = false
+                        onResetAll()
+                        resetDone = true
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(R.string.reset_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmReset = false }) { Text(stringResource(R.string.cancel)) }
+            }
+        )
+    }
+
+    Box(
+        Modifier.fillMaxSize()
+            .background(Brush.verticalGradient(listOf(SkyBlue.copy(.25f), Cream, Parchment)))
+            .statusBarsPadding()
+    ) {
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(Modifier.fillMaxWidth()) {
+                TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") }
+            }
+            Text("⚙️ ${stringResource(R.string.settings)}", fontSize = 30.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
+            Spacer(Modifier.height(18.dp))
+
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 650.dp)) {
+                SettingToggle("🔊", stringResource(R.string.narrator), stringResource(R.string.narrator_desc), narratorEnabled, onNarratorChanged)
+                HorizontalDivider(color = WoodBrown.copy(.15f))
+                SettingToggle("🎵", stringResource(R.string.sound_effects), stringResource(R.string.sound_effects_desc), soundEnabled, onSoundChanged)
+                HorizontalDivider(color = WoodBrown.copy(.15f))
+                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("🌐", fontSize = 25.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.language), fontWeight = FontWeight.Black)
+                        Text(stringResource(R.string.language_desc), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
+                    }
+                    OutlinedButton(onClick = onLanguage) { Text("PL / EN") }
+                }
+                Spacer(Modifier.height(8.dp))
+                Surface(shape = RoundedCornerShape(16.dp), color = BrightGreen.copy(.11f)) {
+                    Text(stringResource(R.string.offline_safe_note), modifier = Modifier.padding(12.dp), color = Ink)
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 650.dp)) {
+                Text(
+                    "⬆️ ${stringResource(R.string.updates)}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                    color = WoodBrown
+                )
+                Text(stringResource(R.string.updates_desc), color = Ink)
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    stringResource(R.string.current_version, BuildConfig.VERSION_NAME),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = WoodBrown
+                )
+                Spacer(Modifier.height(10.dp))
+
+                val knownUpdate = updateInfo
+                if (knownUpdate != null) {
+                    Surface(shape = RoundedCornerShape(15.dp), color = StarYellow.copy(.20f)) {
+                        Column(Modifier.fillMaxWidth().padding(12.dp)) {
+                            Text(
+                                stringResource(R.string.update_available, knownUpdate.version),
+                                fontWeight = FontWeight.Black,
+                                color = AdventureGreen
+                            )
+                            if (knownUpdate.notes.isNotBlank()) {
+                                Text(
+                                    knownUpdate.notes.take(320),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Ink
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(9.dp))
+                    Button(
+                        onClick = {
+                            val existing = downloadedApk
+                            if (existing != null && existing.exists()) {
+                                val started = GitHubUpdateManager.installApk(context, existing)
+                                if (!started) updateStatus = context.getString(R.string.install_permission_note)
+                            } else {
+                                downloadingUpdate = true
+                                updateStatus = context.getString(R.string.downloading_update)
+                                scope.launch {
+                                    val result = GitHubUpdateManager.downloadApk(context, knownUpdate)
+                                    downloadingUpdate = false
+                                    result.onSuccess { file ->
+                                        downloadedApk = file
+                                        val started = GitHubUpdateManager.installApk(context, file)
+                                        updateStatus = if (started) null else context.getString(R.string.install_permission_note)
+                                    }.onFailure { error ->
+                                        updateStatus = context.getString(R.string.update_error, error.message ?: "download")
+                                    }
+                                }
+                            }
+                        },
+                        enabled = !downloadingUpdate,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)
+                    ) {
+                        if (downloadingUpdate) {
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text(stringResource(if (downloadingUpdate) R.string.downloading_update else R.string.download_install))
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            checkingUpdate = true
+                            updateStatus = null
+                            scope.launch {
+                                when (val result = GitHubUpdateManager.checkForUpdate()) {
+                                    is GitHubUpdateManager.CheckResult.Available -> {
+                                        updateInfo = result.info
+                                        updateStatus = context.getString(R.string.update_available, result.info.version)
+                                    }
+                                    GitHubUpdateManager.CheckResult.UpToDate -> {
+                                        updateInfo = null
+                                        updateStatus = context.getString(R.string.update_up_to_date)
+                                    }
+                                    is GitHubUpdateManager.CheckResult.Error -> {
+                                        updateStatus = context.getString(R.string.update_error, result.message)
+                                    }
+                                }
+                                checkingUpdate = false
+                            }
+                        },
+                        enabled = !checkingUpdate,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)
+                    ) {
+                        if (checkingUpdate) {
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text(stringResource(if (checkingUpdate) R.string.checking_update else R.string.check_update))
+                    }
+                }
+                updateStatus?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = WoodBrown)
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.github_release_note), style = MaterialTheme.typography.labelSmall, color = WoodBrown)
+            }
+
+            Spacer(Modifier.height(14.dp))
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 650.dp)) {
+                Text(
+                    "🗄️ ${stringResource(R.string.data_and_progress)}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                    color = WoodBrown
+                )
+                Spacer(Modifier.height(8.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = .72f)
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                        Text(
+                            stringResource(R.string.reset_all_data),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Text(
+                            stringResource(R.string.reset_all_data_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Ink
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Button(
+                            onClick = { confirmReset = true },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("🗑️  ${stringResource(R.string.reset_all_data)}", fontWeight = FontWeight.Black)
+                        }
+                    }
+                }
+                if (resetDone) {
+                    Spacer(Modifier.height(10.dp))
+                    Surface(shape = RoundedCornerShape(14.dp), color = BrightGreen.copy(.16f)) {
+                        Text(
+                            "✅ ${stringResource(R.string.reset_done)}",
+                            modifier = Modifier.fillMaxWidth().padding(11.dp),
+                            color = AdventureGreen,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun SettingToggle(icon: String, title: String, description: String, checked: Boolean, onChecked: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(icon, fontSize = 25.sp)
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.Black)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = WoodBrown)
+        }
+        Switch(checked = checked, onCheckedChange = onChecked)
+    }
+}
