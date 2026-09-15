@@ -6,10 +6,19 @@ import org.junit.Test
 
 class ContentSanityTest {
     @Test
-    fun hasSevenWorldsAndSeventyStages() {
+    fun hasSevenWorldsAndFortyNineStages() {
         assertEquals(7, GameContent.worlds.size)
-        assertTrue(GameContent.worlds.all { it.stages.size == 10 })
-        assertEquals(70, GameContent.worlds.sumOf { it.stages.size })
+        assertTrue(GameContent.worlds.all { it.stages.size == GameRules.STAGES_PER_WORLD })
+        assertEquals(49, GameContent.worlds.sumOf { it.stages.size })
+    }
+
+    @Test
+    fun stageDifficultyCoversAgesFourToEight() {
+        assertTrue(GameContent.worlds.all { world ->
+            world.stages.first().targetAge == 4 &&
+                world.stages.last().targetAge == 8 &&
+                world.stages.zipWithNext().all { (a, b) -> a.targetAge <= b.targetAge }
+        })
     }
 
     @Test
