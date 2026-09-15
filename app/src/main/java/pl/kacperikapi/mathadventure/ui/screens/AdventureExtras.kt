@@ -93,7 +93,7 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
                 Spacer(Modifier.weight(1f))
                 Surface(shape = CircleShape, color = Parchment) {
                     Text(
-                        "${world.icon} ${stage.number}/10",
+                        "${world.icon} ${stage.number}/${GameRules.STAGES_PER_WORLD}",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         fontWeight = FontWeight.Black
                     )
@@ -114,6 +114,12 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
                 fontSize = 31.sp,
                 fontWeight = FontWeight.Black,
                 color = Ink,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                if (language == "en") "Difficulty: around age ${stage.targetAge}" else "Poziom: około ${stage.targetAge} lat",
+                color = WoodBrown,
+                fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
             )
 
