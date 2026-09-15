@@ -1,94 +1,97 @@
-# Kacper i Kapi – Edukacyjna Przygoda 0.4.0 GITHUB RELEASE
+# Kacper & Kapi – Edukacyjna Przygoda 0.5.0
 
-Projekt Android Studio (Kotlin + Jetpack Compose) na telefon i tablet.
+Gra edukacyjno-podróżnicza na Androida (Kotlin + Jetpack Compose), przygotowywana na telefon, tablet i publikację w Google Play.
 
-## Najważniejsze w 0.4.0
-- wersja produkcyjna z **blokadą poziomów i światów**,
-- komplet **70 kart atrakcji**: Wieliczka, Kraków, Tatry, Rzym, Londyn, Mediolan i Malta,
-- prawdziwe zdjęcia atrakcji z Wikimedia Commons + opisy i ciekawostki PL/EN,
-- pozostałe 40 kart korzysta z Wikimedia Commons API i pobiera wraz ze zdjęciem autora oraz licencję,
-- mechanizm aktualizacji z **GitHub Releases** w `Ustawienia > Aktualizacje`,
-- workflow GitHub Actions do testów oraz automatycznego tworzenia podpisanego APK po wysłaniu taga `vX.Y.Z`,
-- docelowe repo aktualizacji: `przemyslawjanus2016/kacpigame`.
+## 0.5.0 – główne zmiany
+- **7 światów × 7 aktywnych etapów = 49 misji kampanii**,
+- zakres trudności **4–8 lat**,
+- etap 1 zaczyna się od najprostszych zadań przedszkolnych, a kolejne etapy stopniowo podnoszą poziom,
+- kliknięcie punktu na mapie otwiera najpierw kartę **Poznaj to miejsce** z prawdziwym zdjęciem, opisem i ciekawostką, dopiero potem można rozpocząć misję,
+- kolejny etap odblokowuje wynik co najmniej **5/7 poprawnych odpowiedzi**,
+- po słabszym wyniku aplikacja jasno informuje, dlaczego następny etap pozostaje zablokowany,
+- dotknięcie zablokowanego punktu pokazuje wymaganie odblokowania,
+- przebudowany hybrydowy generator pytań z bankami offline, generowaniem proceduralnym, historią pytań i lekką adaptacją trudności,
+- wersja główna jest przygotowywana pod zasady Google Play: brak reklam, brak konta dziecka i brak uprawnienia `REQUEST_INSTALL_PACKAGES`.
 
-## Blokada poziomów
-`data/DevOptions.kt` ma:
+## Kampania i trudność
 
-```kotlin
-const val UNLOCK_ALL_CONTENT: Boolean = false
-```
+Każdy świat ma 7 aktywnych etapów. Docelowy poziom wieku rośnie następująco:
 
-Reguły gry:
+| Etap | Orientacyjny poziom |
+|---|---|
+| 1 | 4 lata |
+| 2 | 4 lata |
+| 3 | 5 lat |
+| 4 | 6 lat |
+| 5 | 7 lat |
+| 6 | 8 lat |
+| 7 | 8 lat |
+
+Poziom jest dodatkowo lekko adaptowany na podstawie wcześniejszych wyników dziecka, maksymalnie o jeden krok trudności w górę lub w dół.
+
+### Przykładowe zadania
+- 4 lata: liczenie obrazków, dodawanie/odejmowanie do 5, pierwsza litera, proste sylaby, kolory i zwierzęta po angielsku, rytmy obrazkowe, podstawowe pytania o przyrodę i codzienne sytuacje,
+- 5–6 lat: działania do 10/20, brakująca liczba, proste zadania tekstowe, dni tygodnia, rzeczownik/czasownik, sekwencje i prosta wiedza o świecie,
+- 7–8 lat: działania do 100, pieniądze, mnożenie, później dzielenie, ortografia, części mowy, zegar, analogie, pamięć i trudniejsze pytania o miejsca/przyrodę.
+
+## Odblokowywanie
 - start: **Wieliczka, etap 1**,
-- misję trzeba zaliczyć wynikiem co najmniej **4/5**,
-- wtedy odblokowuje się następny etap,
-- ukończenie etapu 10 odblokowuje następny świat i jego etap 1,
+- misja kampanii ma 7 pytań,
+- minimum do zaliczenia: **5/7**,
+- zaliczenie odblokowuje następny etap,
+- zaliczenie etapu 7 odblokowuje następny świat,
 - ćwiczenia tematyczne nie odblokowują kampanii,
-- `Wyzeruj wszystkie dane` wraca do Wieliczki 1.
+- `Wyzeruj wszystkie dane` przywraca start od Wieliczki 1.
 
-## Karty prawdziwych atrakcji
-Każda z 70 misji ma ekran **Poznaj to miejsce** przed zadaniem:
-- prawdziwe zdjęcie,
-- opis PL/EN,
-- ciekawostka PL/EN,
-- `Posłuchaj / Listen` przez Android TTS,
-- autor/licencja Wikimedia Commons,
-- cache zdjęcia na urządzeniu do późniejszego użycia offline.
+## Karty atrakcji
+Przed każdą aktywną misją wyświetlany jest ekran **Poznaj to miejsce**:
+- prawdziwe zdjęcie atrakcji z Wikimedia Commons,
+- opis i ciekawostka,
+- autor/licencja źródła,
+- możliwość odsłuchania treści przez TTS,
+- przycisk `Rozpocznij misję`.
 
-Pierwsze 30 kart ma ręcznie wskazane pliki Commons. Rzym, Londyn, Mediolan i Malta używają precyzyjnych zapytań do Wikimedia Commons API, dzięki czemu aplikacja pobiera rzeczywiste zdjęcie i metadane autora/licencji.
+Dane atrakcji dla etapów 8–10 pozostają w projekcie jako materiał do przyszłego rozszerzenia, ale w 0.5.0 nie są częścią aktywnej kampanii.
 
-## Aktualizacje przez GitHub Releases
-W ustawieniach znajduje się sekcja **Aktualizacje**:
-1. aplikacja sprawdza `releases/latest`,
-2. porównuje `versionName` z tagiem release, np. `v0.4.1`,
-3. pobiera załączony plik `.apk`,
-4. otwiera systemowy instalator Androida.
+## Pytania
+Silnik pytań łączy:
+- duże banki treści offline,
+- generowane działania matematyczne i zadania logiczne,
+- różne typy interakcji (wybór, obrazek, sekwencja, układanie, pamięć),
+- historię ostatnio pokazanych pytań, aby ograniczać powtórki,
+- dobór tematów wymagających dodatkowego ćwiczenia.
 
-Pierwsza aktualizacja może wymagać zgody Androida na `Instalowanie nieznanych aplikacji` dla tej aplikacji.
+## Języki
+Aktualnie pełna zawartość działa w **PL / EN**. Następne planowane pełne lokalizacje to **DE i ES**, a później **IT i SK**. Nowe języki powinny obejmować nie tylko menu, ale także pytania, opisy atrakcji, ciekawostki i TTS.
 
-> To jest wariant dystrybucji GitHub. Uprawnienie `REQUEST_INSTALL_PACKAGES` należy usunąć w przyszłym wariancie przeznaczonym do Google Play.
+## Google Play
+Docelowa wersja Play będzie publikowana jako **Android App Bundle (AAB)** i aktualizowana przez Google Play. Główna wersja aplikacji nie korzysta z `REQUEST_INSTALL_PACKAGES` ani z samodzielnej instalacji aktualizacji APK.
 
-## GitHub Actions
-- `.github/workflows/build.yml` — test + debug APK przy pushu do `main`,
-- `.github/workflows/release.yml` — po tagu `v*.*.*` buduje podpisany release APK i tworzy GitHub Release.
+Założenia publikacyjne:
+- aplikacja płatna jednorazowo, bez reklam i bez zakupów w aplikacji na start,
+- docelowa grupa: dzieci 4–8 lat,
+- polityka prywatności + poprawnie wypełnione sekcje `Docelowi odbiorcy i treści`, `Bezpieczeństwo danych` oraz IARC,
+- lokalny zapis postępu, brak konta dziecka, brak lokalizacji/kontaktów.
 
-Podpis wydania używa sekretów repozytorium i **jednego stałego klucza JKS**. Klucz ani hasła nie są w repo.
-
-Pełna instrukcja pierwszego uruchomienia GitHub: `GITHUB_RELEASE_SETUP.md`.
-
-## Szybki start Android Studio
-1. Rozpakuj projekt do nowego folderu.
-2. Otwórz cały folder w Android Studio.
-3. `File > Sync Project with Gradle Files`.
-4. Uruchom `debug` na telefonie/tablecie.
-
-## Zawartość
-- 7 światów,
-- 70 etapów,
-- 70 kart atrakcji,
-- matematyka, polski, angielski, logika, przyroda, wiedza o świecie i życie codzienne,
-- fabuła,
-- misja dnia i streak,
+## Funkcje
+- 7 światów: Wieliczka, Kraków, Tatry, Rzym, Londyn, Mediolan, Malta,
+- 49 aktywnych etapów,
+- matematyka, polski, angielski, logika, przyroda, wiedza o świecie, życie codzienne,
 - paszport podróżnika,
-- nagrody,
-- TTS i dźwięki,
-- adaptacyjne pytania,
+- nagrody i gwiazdki,
+- misja dnia i streak,
+- lektor TTS i dźwięki,
 - Panel Rodzica,
 - reset wszystkich danych,
-- PL/EN.
-
-## Prywatność
-Postęp pozostaje lokalny. Internet jest używany do zdjęć Wikimedia Commons oraz ręcznego sprawdzania publicznych GitHub Releases. Brak konta dziecka, reklam i dostępu do lokalizacji/kontaktów.
+- obsługa telefonu i tabletu,
+- prawidłowe cofanie systemowym przyciskiem/gestem Wstecz i zachowanie ekranu przy obrocie.
 
 ## Wersja
-- `versionName 0.4.0`
-- `versionCode 16`
+- `versionName 0.5.0`
+- `versionCode 18`
 - `compileSdk 36`
 - `targetSdk 36`
 
-
-
 ## GitHub
-
 Kod: `przemyslawjanus2016/kacpigame`  
-Aktualizacje APK: `przemyslawjanus2016/kacpigame-release`
+Wydania testowe APK: `przemyslawjanus2016/kacpigame-release`
