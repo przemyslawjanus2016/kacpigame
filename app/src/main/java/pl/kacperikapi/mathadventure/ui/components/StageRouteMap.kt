@@ -39,6 +39,7 @@ fun StageRouteMap(
     progress: GameProgress,
     selectedStage: Int,
     onSelect: (Int) -> Unit,
+    onLocked: (Stage) -> Unit,
     modifier: Modifier = Modifier,
     height: Dp = 620.dp
 ) {
@@ -91,15 +92,16 @@ fun StageRouteMap(
 
         val nodeSize = if (maxWidth >= 700.dp) 72.dp else 58.dp
         world.stages.forEach { stage ->
+            val unlocked = progress.isStageUnlocked(stage)
             val x = maxWidth * stage.x - nodeSize / 2
             val y = maxHeight * stage.y - nodeSize / 2
             StageNode(
                 stage = stage,
-                unlocked = progress.isStageUnlocked(stage),
+                unlocked = unlocked,
                 completed = progress.isStageCompleted(stage),
                 stars = progress.stageStars(stage),
                 selected = stage.number == selectedStage,
-                onClick = { if (progress.isStageUnlocked(stage)) onSelect(stage.number) },
+                onClick = { if (unlocked) onSelect(stage.number) else onLocked(stage) },
                 modifier = Modifier.offset(x, y).size(nodeSize)
             )
         }
@@ -123,7 +125,7 @@ private fun StageNode(
         else -> AdventureGreen
     }
     Surface(
-        modifier = modifier.clickable(enabled = unlocked, onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         shape = CircleShape,
         color = color,
         shadowElevation = if (selected) 10.dp else 5.dp,
