@@ -128,6 +128,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
     var progress by remember { mutableStateOf(store.load()) }
     var narratorEnabled by remember { mutableStateOf(store.loadNarratorEnabled()) }
     var soundEnabled by remember { mutableStateOf(store.loadSoundEnabled()) }
+    var progressionNotice by remember { mutableStateOf<String?>(null) }
     var selectedStages by remember {
         mutableStateOf(GameContent.worlds.associate { it.id to progress.availableMaxStage(it.id).coerceAtLeast(1) })
     }
@@ -166,7 +167,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
             onWorld = { screen = Screen.Map(it) },
             onPractice = {
                 val worldId = progress.unlockedWorldId.coerceIn(1, GameContent.worlds.size)
-                val stage = progress.maxStage(worldId).coerceIn(1, 10)
+                val stage = progress.maxStage(worldId).coerceIn(1, GameRules.STAGES_PER_WORLD)
                 screen = Screen.Categories(worldId, stage)
             },
             onDaily = { screen = Screen.DailyIntro },
@@ -179,16 +180,22 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
         is Screen.Map -> {
             val safeWorldId = current.worldId.coerceIn(1, GameContent.worlds.size)
             val world = GameContent.world(safeWorldId)
-            val maxStage = progress.availableMaxStage(safeWorldId).coerceIn(1, 10)
+            val maxStage = progress.availableMaxStage(safeWorldId).coerceIn(1, GameRules.STAGES_PER_WORLD)
             val selected = selectedStages[safeWorldId]?.coerceIn(1, maxStage) ?: 1
             AdventureMapScreen(
                 world = world,
                 progress = progress,
                 selectedStage = selected,
-                onSelectStage = { number -> selectedStages = selectedStages + (safeWorldId to number.coerceIn(1, maxStage)) },
+                onSelectStage = { number ->
+                    val safeStage = number.coerceIn(1, maxStage)
+                    selectedStages = selectedStages + (safeWorldId to safeStage)
+                    screen = Screen.Story(safeWorldId, safeStage)
+                },
                 onPlay = { screen = Screen.Story(safeWorldId, selected) },
                 onBack = { screen = Screen.Worlds },
-                onPractice = { screen = Screen.Categories(safeWorldId, selected) }
+                onPractice = { screen = Screen.Categories(safeWorldId, selected) },
+                notice = progressionNotice,
+                onNoticeDismiss = { progressionNotice = null }
             )
         }
         is Screen.Story -> {
@@ -204,7 +211,10 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
             onBack = { screen = Screen.Map(current.worldId) }
         )
         is Screen.Game -> {
-            val stage = if (current.daily) dailyStage() else GameContent.stage(current.worldId.coerceIn(1, 7), current.stageNumber.coerceIn(1, 10))
+            val stage = if (current.daily) dailyStage() else GameContent.stage(
+                current.worldId.coerceIn(1, GameContent.worlds.size),
+                current.stageNumber.coerceIn(1, GameRules.STAGES_PER_WORLD)
+            )
             LearningGameScreen(
                 stage = stage,
                 fixedCategory = current.category,
@@ -245,7 +255,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
                         screen = Screen.Worlds
                     } else {
                         val isAdventure = current.category == null
-                        val completedWell = result.correct >= 6
+                        val completedWell = result.correct >= GameRules.PASSING_CORRECT
                         var unlockedWorld = progress.unlockedWorldId
                         val maxByWorld = progress.maxStageByWorld.toMutableMap()
                         val completed = progress.completedStageIds.toMutableSet()
@@ -260,7 +270,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
                                 starGain = result.earnedStars - previousStars
                                 stageStars[stage.id] = result.earnedStars
                             }
-                            if (stage.number < 10) {
+                            if (stage.number < GameRules.STAGES_PER_WORLD) {
                                 val nextStage = stage.number + 1
                                 maxByWorld[stage.worldId] = maxOf(progress.maxStage(stage.worldId), nextStage)
                                 selectedStages = selectedStages + (stage.worldId to nextStage)
@@ -270,6 +280,12 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
                                     unlockedWorld = maxOf(unlockedWorld, stage.worldId + 1)
                                     maxByWorld[stage.worldId + 1] = maxOf(maxByWorld[stage.worldId + 1] ?: 0, 1)
                                 }
+                            }
+                        } else if (isAdventure) {
+                            progressionNotice = if (store.loadLanguage() == "en") {
+                                "You got ${result.correct}/${result.total}. ${GameRules.requirementEn()} The next stage is still locked."
+                            } else {
+                                "Masz ${result.correct}/${result.total} poprawnych odpowiedzi. ${GameRules.requirementPl()} Kolejny etap pozostaje zablokowany."
                             }
                         }
 
@@ -307,6 +323,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
             onResetAll = {
                 progress = store.resetAllProgress()
                 selectedStages = GameContent.worlds.associate { it.id to 1 }
+                progressionNotice = null
                 screen = Screen.Worlds
             },
             onBack = { screen = Screen.Worlds }
@@ -320,6 +337,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
             onResetAll = {
                 progress = store.resetAllProgress()
                 selectedStages = GameContent.worlds.associate { it.id to 1 }
+                progressionNotice = null
             },
             onBack = { screen = Screen.Worlds }
         )
@@ -329,7 +347,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
 private fun dailyStage(): Stage {
     val today = LocalDate.now()
     val worldId = ((today.dayOfYear - 1) % GameContent.worlds.size) + 1
-    val stageNumber = ((today.dayOfMonth - 1) % 10) + 1
+    val stageNumber = ((today.dayOfMonth - 1) % GameRules.STAGES_PER_WORLD) + 1
     return Stage(
         id = "daily-${today}",
         worldId = worldId,
@@ -338,7 +356,8 @@ private fun dailyStage(): Stage {
         nameEn = "Daily Mission",
         categories = LearningCategory.entries.toList(),
         x = .5f,
-        y = .5f
+        y = .5f,
+        targetAge = GameRules.targetAge(stageNumber)
     )
 }
 
