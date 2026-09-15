@@ -39,7 +39,6 @@ object GameContent {
         LearningCategory.entries.toList()
     )
 
-
     val worlds: List<WorldDefinition> = listOf(
         WorldDefinition(
             id = 1,
@@ -191,7 +190,7 @@ object GameContent {
     )
 
     private fun stages(worldId: Int, names: List<Pair<String, String>>): List<Stage> =
-        names.mapIndexed { index, pair ->
+        names.take(GameRules.STAGES_PER_WORLD).mapIndexed { index, pair ->
             val p = route[index]
             Stage(
                 id = "w${worldId}s${index + 1}",
@@ -201,10 +200,10 @@ object GameContent {
                 nameEn = pair.second,
                 categories = categoryRotation[index],
                 x = p.first,
-                y = p.second
+                y = p.second,
+                targetAge = GameRules.targetAge(index + 1)
             )
         }
-
 
     fun story(stage: Stage): StoryBeat {
         val worldNamePl = listOf("Wieliczka", "Kraków", "Tatry", "Rzym", "Londyn", "Mediolan", "Malta")[stage.worldId - 1]
