@@ -44,7 +44,6 @@ data class StoryBeat(
     fun fact(language: String) = if (language == "en") factEn else factPl
 }
 
-
 data class AttractionInfo(
     val stageId: String,
     val descriptionPl: String,
@@ -96,7 +95,8 @@ data class Stage(
     val nameEn: String,
     val categories: List<LearningCategory>,
     val x: Float,
-    val y: Float
+    val y: Float,
+    val targetAge: Int = GameRules.targetAge(number)
 ) {
     fun name(language: String): String = if (language == "en") nameEn else namePl
 }
@@ -169,9 +169,8 @@ data class GameProgress(
 
     fun maxStage(worldId: Int): Int = maxStageByWorld[worldId] ?: if (worldId == 1) 1 else 0
 
-    /** Highest stage the UI allows opening. In the temporary preview build all stages are inspectable. */
     fun availableMaxStage(worldId: Int): Int =
-        if (DevOptions.UNLOCK_ALL_CONTENT) 10 else maxStage(worldId)
+        if (DevOptions.UNLOCK_ALL_CONTENT) GameRules.STAGES_PER_WORLD else maxStage(worldId)
 
     fun isWorldUnlocked(worldId: Int): Boolean =
         DevOptions.UNLOCK_ALL_CONTENT || worldId <= unlockedWorldId
