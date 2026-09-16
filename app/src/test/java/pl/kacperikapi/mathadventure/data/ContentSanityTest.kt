@@ -1,5 +1,6 @@
 package pl.kacperikapi.mathadventure.data
 
+import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,6 +20,37 @@ class ContentSanityTest {
                 world.stages.last().targetAge == 8 &&
                 world.stages.zipWithNext().all { (a, b) -> a.targetAge <= b.targetAge }
         })
+    }
+
+    @Test
+    fun sixLanguagesAreConfigured() {
+        assertEquals(listOf("pl", "en", "de", "es", "it", "sk"), AppLanguages.supported.map { it.tag })
+        assertTrue(AppLanguages.supported.all { it.currencyCode.isNotBlank() && it.capital.isNotBlank() && it.ttsLocale.language.isNotBlank() })
+    }
+
+    @Test
+    fun everyLanguageAndCategoryProducesValidQuestionsForAgesFourToEight() {
+        AppLanguages.supported.forEachIndexed { languageIndex, language ->
+            LearningCategory.entries.forEachIndexed { categoryIndex, category ->
+                for (age in GameRules.MIN_AGE..GameRules.MAX_AGE) {
+                    val stage = GameContent.worlds[(languageIndex + categoryIndex) % GameContent.worlds.size]
+                        .stages[(age - GameRules.MIN_AGE).coerceIn(0, GameRules.STAGES_PER_WORLD - 1)]
+                    repeat(8) { sample ->
+                        val q = LocalizedQuestionFactory.generate(
+                            category = category,
+                            stage = stage,
+                            age = age,
+                            language = language.tag,
+                            random = Random(languageIndex * 10000 + categoryIndex * 1000 + age * 100 + sample)
+                        )
+                        assertTrue("blank prompt for ${language.tag}/$category/$age", q.prompt(language.tag).isNotBlank())
+                        assertTrue("too few options for ${language.tag}/$category/$age", q.options(language.tag).size >= 2)
+                        assertTrue("invalid answer for ${language.tag}/$category/$age", q.correctIndex in q.options(language.tag).indices)
+                        assertTrue("blank answer for ${language.tag}/$category/$age", q.correctAnswer(language.tag).isNotBlank())
+                    }
+                }
+            }
+        }
     }
 
     @Test
