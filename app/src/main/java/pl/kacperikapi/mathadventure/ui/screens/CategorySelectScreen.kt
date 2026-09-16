@@ -15,18 +15,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pl.kacperikapi.mathadventure.R
+import pl.kacperikapi.mathadventure.data.AppLanguages
 import pl.kacperikapi.mathadventure.data.GameContent
 import pl.kacperikapi.mathadventure.data.LearningCategory
 import pl.kacperikapi.mathadventure.ui.theme.*
 
 @Composable
 fun CategorySelectScreen(onCategory: (LearningCategory) -> Unit, onBack: () -> Unit) {
+    val language = AppLanguages.normalize(LocalConfiguration.current.locales[0].language)
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(SkyBlue.copy(.35f), Cream, Parchment))).statusBarsPadding()) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(Modifier.fillMaxWidth()) { TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") } }
@@ -41,6 +44,7 @@ fun CategorySelectScreen(onCategory: (LearningCategory) -> Unit, onBack: () -> U
             )
             Spacer(Modifier.height(8.dp))
             GameContent.categories.forEach { category ->
+                val icon = if (category.id == LearningCategory.POLISH) AppLanguages.profile(language).countryFlag else category.icon
                 Surface(
                     modifier = Modifier.fillMaxWidth().widthIn(max = 720.dp).padding(vertical = 5.dp).clickable { onCategory(category.id) },
                     shape = RoundedCornerShape(18.dp),
@@ -48,7 +52,7 @@ fun CategorySelectScreen(onCategory: (LearningCategory) -> Unit, onBack: () -> U
                     shadowElevation = 3.dp
                 ) {
                     Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(category.icon, fontSize = 31.sp)
+                        Text(icon, fontSize = 31.sp)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(category.nameRes), fontSize = 18.sp, fontWeight = FontWeight.Black, color = Ink)
