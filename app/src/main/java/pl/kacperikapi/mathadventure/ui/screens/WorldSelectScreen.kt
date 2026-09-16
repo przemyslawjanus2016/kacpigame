@@ -23,6 +23,7 @@ import pl.kacperikapi.mathadventure.R
 import pl.kacperikapi.mathadventure.data.DevOptions
 import pl.kacperikapi.mathadventure.data.GameContent
 import pl.kacperikapi.mathadventure.data.GameProgress
+import pl.kacperikapi.mathadventure.data.GameRules
 import pl.kacperikapi.mathadventure.data.WorldDefinition
 import pl.kacperikapi.mathadventure.ui.components.GameTitle
 import pl.kacperikapi.mathadventure.ui.components.ResourceBar
@@ -47,18 +48,11 @@ fun WorldSelectScreen(
     ) {
         val tablet = maxWidth >= 700.dp
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            ResourceBar(
-                progress = progress,
-                onLanguageClick = onLanguage,
-                onSettingsClick = onSettings
-            )
+            ResourceBar(progress = progress, onLanguageClick = onLanguage, onSettingsClick = onSettings)
             GameTitle(compact = !tablet)
             Spacer(Modifier.height(12.dp))
             if (tablet) {
-                Row(
-                    Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     HeroPanel(Modifier.weight(.9f))
                     WorldGrid(progress, onWorld, Modifier.weight(1.35f))
                 }
@@ -117,9 +111,7 @@ private fun WorldCard(world: WorldDefinition, unlocked: Boolean, maxStage: Int, 
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.width(104.dp).height(72.dp).clip(RoundedCornerShape(14.dp))
                 )
-            } else {
-                Text(world.icon, fontSize = 30.sp)
-            }
+            } else Text(world.icon, fontSize = 30.sp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(stringResource(world.nameRes), fontWeight = FontWeight.Black, color = Ink, fontSize = 18.sp)
@@ -128,7 +120,7 @@ private fun WorldCard(world: WorldDefinition, unlocked: Boolean, maxStage: Int, 
                         !unlocked -> stringResource(R.string.locked)
                         progress.isWorldCompleted(world.id) -> "✅ ${stringResource(R.string.world_completed)}"
                         DevOptions.UNLOCK_ALL_CONTENT -> stringResource(R.string.preview_all_unlocked)
-                        else -> stringResource(R.string.stage_progress, maxStage.coerceAtLeast(1), 10)
+                        else -> stringResource(R.string.stage_progress, maxStage.coerceAtLeast(1), GameRules.STAGES_PER_WORLD)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = if (unlocked) AdventureGreen else LockedGrey
@@ -140,13 +132,7 @@ private fun WorldCard(world: WorldDefinition, unlocked: Boolean, maxStage: Int, 
 }
 
 @Composable
-private fun ActionGrid(
-    onDaily: () -> Unit,
-    onPassport: () -> Unit,
-    onPractice: () -> Unit,
-    onRewards: () -> Unit,
-    onParent: () -> Unit
-) {
+private fun ActionGrid(onDaily: () -> Unit, onPassport: () -> Unit, onPractice: () -> Unit, onRewards: () -> Unit, onParent: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SmallAction("🎁", stringResource(R.string.daily_mission), onDaily, Modifier.weight(1f))
