@@ -67,6 +67,9 @@ jobs:
           rm -f .bundle_photos_v2_pending
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/src/main/res/drawable-nodpi/attraction_*.webp app/src/main/assets/attraction_photo_credits.json .bundle_photos_v2_pending
+          git add app/src/main/res/drawable-nodpi/attraction_*.webp \
+                  app/src/main/assets/attraction_photo_credits.json \
+                  app/src/main/assets/attraction_photo_bundle_report.json \
+                  .bundle_photos_v2_pending
           git commit -m "Bundle attraction photos for offline play"
           git push origin HEAD:foundation-v0.5.3
