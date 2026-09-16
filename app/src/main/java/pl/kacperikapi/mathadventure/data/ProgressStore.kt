@@ -98,8 +98,13 @@ class ProgressStore(context: Context) {
     }
 
     /** UI preferences are device-wide, while game progress belongs to the selected local player. */
-    fun loadLanguage(): String = AppLanguages.normalize(globalSafeString("language", "pl"))
+    fun loadLanguage(): String {
+        val saved = globalSafeString("language", null)
+        return if (saved.isNullOrBlank()) AppLanguages.detectDeviceLanguage() else AppLanguages.normalize(saved)
+    }
+
     fun saveLanguage(tag: String) = globalPrefs.edit().putString("language", AppLanguages.normalize(tag)).apply()
+    fun hasSavedLanguage(): Boolean = globalPrefs.contains("language")
     fun loadNarratorEnabled(): Boolean = globalSafeBoolean("narrator", true)
     fun saveNarratorEnabled(enabled: Boolean) = globalPrefs.edit().putBoolean("narrator", enabled).apply()
     fun loadSoundEnabled(): Boolean = globalSafeBoolean("sound", true)
