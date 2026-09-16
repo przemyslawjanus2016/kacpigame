@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="premium_full_version">Full version</string>
+    <string name="premium_unlock_title">Unlock the whole adventure</string>
+    <string name="premium_unlock_description">Wieliczka stays free. The full version unlocks Kraków, the Tatra Mountains, Rome, London, Milan and Malta.</string>
+    <string name="premium_feature_worlds">6 extra worlds and 42 more missions</string>
+    <string name="premium_feature_no_ads">No ads and no subscription</string>
+    <string name="premium_feature_languages">All languages, questions and content updates</string>
+    <string name="premium_ask_parent">Ask a parent to unlock</string>
+    <string name="premium_parent_check_title">Parent area</string>
+    <string name="premium_parent_check_message">To continue to purchase, solve: %1$d × %2$d − %3$d</string>
+    <string name="premium_parent_answer_hint">Answer</string>
+    <string name="premium_parent_wrong">That answer is not correct. Try again.</string>
+    <string name="premium_continue_purchase">Continue to purchase</string>
+    <string name="premium_buy">Unlock full version</string>
+    <string name="premium_buy_price">Unlock for %1$s</string>
+    <string name="premium_restore">Restore purchase</string>
+    <string name="premium_owned">The full version is unlocked on this Google Play account.</string>
+    <string name="premium_pending">The purchase is waiting for confirmation in Google Play. Access will unlock when payment is completed.</string>
+    <string name="premium_play_unavailable">Google Play is unavailable. Check your internet connection and the Play Store app.</string>
+    <string name="premium_product_missing">The product is not available in Google Play yet. Create and activate full_game_unlock in Play Console.</string>
+    <string name="premium_purchase_cancelled">Purchase cancelled.</string>
+    <string name="premium_purchase_error">The purchase could not be completed. Please try again.</string>
+    <string name="premium_required">Full version required</string>
+    <string name="premium_free_world">Free world</string>
+    <string name="premium_purchase_note">One-time purchase. After reinstalling, use the same Google Play account to restore access.</string>
+    <string name="premium_manage">Full version / purchase</string>
+</resources>
