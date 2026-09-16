@@ -30,6 +30,16 @@ object AppLanguages {
         return supported.firstOrNull { it.tag == short }?.tag ?: "pl"
     }
 
+    /**
+     * Language used on the very first launch, before the player chooses anything.
+     * We follow the device/app locale for all supported languages. For devices using
+     * another language we fall back to English, which is the safest international default.
+     */
+    fun detectDeviceLanguage(locale: Locale = Locale.getDefault()): String {
+        val short = locale.language.substringBefore('-').lowercase()
+        return supported.firstOrNull { it.tag == short }?.tag ?: "en"
+    }
+
     fun profile(tag: String?): LanguageProfile =
         supported.first { it.tag == normalize(tag) }
 
