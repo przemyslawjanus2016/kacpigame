@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
             setPadding(pad, pad, pad, pad)
         }
         root.addView(TextView(this).apply {
-            text = "Kacper i Kapi – diagnostyka\n\nAplikacja zapisała błąd z poprzedniego uruchomienia. Zrób zdjęcie tego ekranu i wyślij mi je."
+            text = "Kacper & Kapi: The Game – diagnostyka\n\nAplikacja zapisała błąd z poprzedniego uruchomienia. Zrób zdjęcie tego ekranu i wyślij mi je."
             textSize = 20f
             setTypeface(typeface, Typeface.BOLD)
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
@@ -446,7 +446,7 @@ private fun SplashScreen(onDone: () -> Unit) {
             modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = 24.dp, vertical = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("KACPER i KAPI", fontSize = 34.sp, fontWeight = FontWeight.Black, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.brand_full_name), fontSize = 32.sp, fontWeight = FontWeight.Black, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)
             Text(stringResource(R.string.game_subtitle_v2), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = StarYellow, textAlign = TextAlign.Center)
             Text(stringResource(R.string.seven_worlds_one_adventure), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)
             Spacer(Modifier.height(16.dp))

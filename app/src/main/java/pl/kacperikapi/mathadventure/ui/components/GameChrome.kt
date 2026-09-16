@@ -119,10 +119,10 @@ fun GameTitle(compact: Boolean = false) {
             shadowElevation = 5.dp
         ) {
             Text(
-                text = "KACPER i KAPI",
+                text = stringResource(R.string.brand_full_name),
                 modifier = Modifier.padding(horizontal = if (compact) 18.dp else 28.dp, vertical = 8.dp),
                 color = Cream,
-                fontSize = if (compact) 25.sp else 32.sp,
+                fontSize = if (compact) 20.sp else 27.sp,
                 fontWeight = FontWeight.Black
             )
         }
