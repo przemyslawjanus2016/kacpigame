@@ -1,7 +1,9 @@
 package pl.kacperikapi.mathadventure.ui.screens
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -13,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pl.kacperikapi.mathadventure.data.AppLanguages
 import pl.kacperikapi.mathadventure.data.PlayerProfile
+import pl.kacperikapi.mathadventure.data.ProgressStore
 import pl.kacperikapi.mathadventure.ui.theme.*
 
 @Composable
@@ -29,6 +33,7 @@ fun ProfileSelectScreen(
     onAdd: (String) -> Unit,
     onBack: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val language = AppLanguages.normalize(LocalConfiguration.current.locales[0].language)
     var adding by remember(profiles.size) { mutableStateOf(profiles.isEmpty()) }
     var name by remember { mutableStateOf("") }
@@ -49,9 +54,52 @@ fun ProfileSelectScreen(
                     TextButton(onClick = onBack) { Text("← ${text("back")}") }
                 }
             } else {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
             }
 
+            Surface(
+                modifier = Modifier.fillMaxWidth().widthIn(max = 720.dp),
+                shape = RoundedCornerShape(20.dp),
+                color = androidx.compose.ui.graphics.Color.White.copy(alpha = .92f),
+                shadowElevation = 3.dp
+            ) {
+                Column(Modifier.padding(14.dp)) {
+                    Text(
+                        "🌐 ${languageTitle(language)}",
+                        fontWeight = FontWeight.Black,
+                        color = AdventureGreen,
+                        fontSize = 19.sp
+                    )
+                    Text(
+                        languageHint(language),
+                        color = WoodBrown,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AppLanguages.supported.forEach { profile ->
+                            val selected = profile.tag == language
+                            FilterChip(
+                                selected = selected,
+                                onClick = {
+                                    if (!selected) {
+                                        ProgressStore(context).saveLanguage(profile.tag)
+                                        (context as? Activity)?.recreate()
+                                    }
+                                },
+                                label = {
+                                    Text("${profile.countryFlag} ${profile.nativeName}", fontWeight = if (selected) FontWeight.Black else FontWeight.Medium)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(18.dp))
             Text("👤🐾", fontSize = 58.sp)
             Text(text("who"), fontSize = 32.sp, fontWeight = FontWeight.Black, color = AdventureGreen, textAlign = TextAlign.Center)
             Text(text("local"), color = WoodBrown, textAlign = TextAlign.Center)
@@ -123,6 +171,24 @@ fun ProfileSelectScreen(
             Text("🔒 ${text("privacy")}", color = WoodBrown, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
         }
     }
+}
+
+private fun languageTitle(language: String): String = when (AppLanguages.normalize(language)) {
+    "pl" -> "Wybierz język"
+    "de" -> "Sprache wählen"
+    "es" -> "Elige el idioma"
+    "it" -> "Scegli la lingua"
+    "sk" -> "Vyber jazyk"
+    else -> "Choose language"
+}
+
+private fun languageHint(language: String): String = when (AppLanguages.normalize(language)) {
+    "pl" -> "Przy pierwszym uruchomieniu gra wybiera język telefonu. Możesz go tutaj zmienić."
+    "de" -> "Beim ersten Start übernimmt das Spiel die Sprache des Telefons. Du kannst sie hier ändern."
+    "es" -> "Al iniciar por primera vez, el juego usa el idioma del teléfono. Puedes cambiarlo aquí."
+    "it" -> "Al primo avvio il gioco usa la lingua del telefono. Puoi cambiarla qui."
+    "sk" -> "Pri prvom spustení hra použije jazyk telefónu. Tu ho môžeš zmeniť."
+    else -> "On first launch, the game uses the phone language. You can change it here."
 }
 
 private fun profileText(language: String, key: String): String = when (AppLanguages.normalize(language)) {
