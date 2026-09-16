@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="premium_full_version">Vollversion</string>
+    <string name="premium_unlock_title">Das ganze Abenteuer freischalten</string>
+    <string name="premium_unlock_description">Wieliczka bleibt kostenlos. Die Vollversion schaltet Krakau, die Tatra, Rom, London, Mailand und Malta frei.</string>
+    <string name="premium_feature_worlds">6 zusätzliche Welten und 42 weitere Missionen</string>
+    <string name="premium_feature_no_ads">Keine Werbung und kein Abo</string>
+    <string name="premium_feature_languages">Alle Sprachen, Fragen und Inhaltsupdates</string>
+    <string name="premium_ask_parent">Eltern um Freischaltung bitten</string>
+    <string name="premium_parent_check_title">Elternbereich</string>
+    <string name="premium_parent_check_message">Um zum Kauf zu gelangen, löse: %1$d × %2$d − %3$d</string>
+    <string name="premium_parent_answer_hint">Ergebnis</string>
+    <string name="premium_parent_wrong">Das Ergebnis ist nicht richtig. Bitte erneut versuchen.</string>
+    <string name="premium_continue_purchase">Weiter zum Kauf</string>
+    <string name="premium_buy">Vollversion freischalten</string>
+    <string name="premium_buy_price">Für %1$s freischalten</string>
+    <string name="premium_restore">Kauf wiederherstellen</string>
+    <string name="premium_owned">Die Vollversion ist auf diesem Google-Play-Konto freigeschaltet.</string>
+    <string name="premium_pending">Der Kauf wartet auf die Bestätigung in Google Play. Der Zugriff wird nach Abschluss der Zahlung freigeschaltet.</string>
+    <string name="premium_play_unavailable">Google Play ist nicht verfügbar. Prüfe Internetverbindung und Play Store.</string>
+    <string name="premium_product_missing">Das Produkt ist in Google Play noch nicht verfügbar. Erstelle und aktiviere full_game_unlock in der Play Console.</string>
+    <string name="premium_purchase_cancelled">Kauf abgebrochen.</string>
+    <string name="premium_purchase_error">Der Kauf konnte nicht abgeschlossen werden. Bitte erneut versuchen.</string>
+    <string name="premium_required">Vollversion erforderlich</string>
+    <string name="premium_free_world">Kostenlose Welt</string>
+    <string name="premium_purchase_note">Einmaliger Kauf. Nach einer Neuinstallation dasselbe Google-Play-Konto verwenden, um den Zugriff wiederherzustellen.</string>
+    <string name="premium_manage">Vollversion / Kauf</string>
+</resources>
