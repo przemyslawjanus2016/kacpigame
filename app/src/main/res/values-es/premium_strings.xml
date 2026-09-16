@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="premium_full_version">Versión completa</string>
+    <string name="premium_unlock_title">Desbloquea toda la aventura</string>
+    <string name="premium_unlock_description">Wieliczka sigue siendo gratis. La versión completa desbloquea Cracovia, los Tatras, Roma, Londres, Milán y Malta.</string>
+    <string name="premium_feature_worlds">6 mundos adicionales y 42 misiones más</string>
+    <string name="premium_feature_no_ads">Sin anuncios y sin suscripción</string>
+    <string name="premium_feature_languages">Todos los idiomas, preguntas y actualizaciones de contenido</string>
+    <string name="premium_ask_parent">Pide a un adulto que lo desbloquee</string>
+    <string name="premium_parent_check_title">Zona para adultos</string>
+    <string name="premium_parent_check_message">Para continuar con la compra, resuelve: %1$d × %2$d − %3$d</string>
+    <string name="premium_parent_answer_hint">Resultado</string>
+    <string name="premium_parent_wrong">El resultado no es correcto. Inténtalo de nuevo.</string>
+    <string name="premium_continue_purchase">Continuar con la compra</string>
+    <string name="premium_buy">Desbloquear versión completa</string>
+    <string name="premium_buy_price">Desbloquear por %1$s</string>
+    <string name="premium_restore">Restaurar compra</string>
+    <string name="premium_owned">La versión completa está desbloqueada en esta cuenta de Google Play.</string>
+    <string name="premium_pending">La compra está pendiente de confirmación en Google Play. El acceso se activará al completarse el pago.</string>
+    <string name="premium_play_unavailable">Google Play no está disponible. Comprueba Internet y la aplicación Play Store.</string>
+    <string name="premium_product_missing">El producto todavía no está disponible en Google Play. Crea y activa full_game_unlock en Play Console.</string>
+    <string name="premium_purchase_cancelled">Compra cancelada.</string>
+    <string name="premium_purchase_error">No se pudo completar la compra. Inténtalo de nuevo.</string>
+    <string name="premium_required">Requiere la versión completa</string>
+    <string name="premium_free_world">Mundo gratis</string>
+    <string name="premium_purchase_note">Compra única. Tras reinstalar, usa la misma cuenta de Google Play para restaurar el acceso.</string>
+    <string name="premium_manage">Versión completa / compra</string>
+</resources>
