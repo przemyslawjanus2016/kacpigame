@@ -13,19 +13,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pl.kacperikapi.mathadventure.R
+import pl.kacperikapi.mathadventure.data.AppLanguages
 import pl.kacperikapi.mathadventure.data.GameProgress
 import pl.kacperikapi.mathadventure.ui.theme.*
 
-/**
- * Compact, single-line resource bar. It intentionally avoids equal weights because
- * on narrow Android phones that used to squeeze the coin count into a vertical stack.
- */
+/** Compact, single-line resource bar that stays readable on narrow phones. */
 @Composable
 fun ResourceBar(
     progress: GameProgress,
@@ -41,6 +40,7 @@ fun ResourceBar(
         val compact = maxWidth < 410.dp
         val spacing = if (compact) 4.dp else 8.dp
         val counterMin = if (compact) 58.dp else 72.dp
+        val language = AppLanguages.normalize(LocalConfiguration.current.locales[0].language)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -54,10 +54,10 @@ fun ResourceBar(
             TextButton(
                 onClick = onLanguageClick,
                 modifier = Modifier.heightIn(min = 42.dp),
-                contentPadding = PaddingValues(horizontal = if (compact) 4.dp else 8.dp)
+                contentPadding = PaddingValues(horizontal = if (compact) 6.dp else 10.dp)
             ) {
                 Text(
-                    "PL | EN",
+                    AppLanguages.label(language),
                     fontWeight = FontWeight.Black,
                     fontSize = if (compact) 14.sp else 16.sp,
                     maxLines = 1,
