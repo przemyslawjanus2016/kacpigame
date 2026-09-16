@@ -1,4 +1,4 @@
-name: Build and publish APK
+name: Build APK and AAB
 
 on:
   push:
@@ -66,34 +66,57 @@ jobs:
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/kacperkapi-release.jks"
 
-      - name: Build signed release APK
+      - name: Build signed APK and AAB
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/kacperkapi-release.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew clean assembleRelease
+        run: ./gradlew clean assembleRelease bundleRelease
 
-      - name: Prepare and verify APK
+      - name: Prepare and verify APK and AAB
         shell: bash
         run: |
           mkdir -p dist
           APK_PATH="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' | head -n 1)"
-          test -n "$APK_PATH" || { echo "Release APK not found"; find app/build/outputs/apk -type f -maxdepth 4 || true; exit 1; }
+          AAB_PATH="$(find app/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' | head -n 1)"
+          test -n "$APK_PATH" || { echo "Release APK not found"; exit 1; }
+          test -n "$AAB_PATH" || { echo "Release AAB not found"; exit 1; }
           cp "$APK_PATH" "dist/KacperKapi-${RELEASE_TAG}.apk"
+          cp "$AAB_PATH" "dist/KacperKapi-${RELEASE_TAG}.aab"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$APKSIGNER" || { echo "apksigner not found"; exit 1; }
           "$APKSIGNER" verify --verbose --print-certs "dist/KacperKapi-${RELEASE_TAG}.apk"
+          jarsigner -verify -verbose -certs "dist/KacperKapi-${RELEASE_TAG}.aab"
 
-      - name: Publish to kacpigame-release
+      - name: Upload Google Play AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KacperKapi-${{ env.RELEASE_TAG }}-GooglePlay
+          path: dist/KacperKapi-${{ env.RELEASE_TAG }}.aab
+          if-no-files-found: error
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KacperKapi-${{ env.RELEASE_TAG }}-APK
+          path: dist/KacperKapi-${{ env.RELEASE_TAG }}.apk
+          if-no-files-found: error
+
+      - name: Publish release assets when release does not exist
         env:
           GH_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
           RELEASE_REPO: przemyslawjanus2016/kacpigame-release
         shell: bash
         run: |
-          gh release create "$RELEASE_TAG" \
-            "dist/KacperKapi-${RELEASE_TAG}.apk" \
-            --repo "$RELEASE_REPO" \
-            --target main \
-            --title "Kacper & Kapi: The Game $RELEASE_TAG" \
-            --generate-notes
+          if gh release view "$RELEASE_TAG" --repo "$RELEASE_REPO" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "dist/KacperKapi-${RELEASE_TAG}.aab" --repo "$RELEASE_REPO" --clobber
+          else
+            gh release create "$RELEASE_TAG" \
+              "dist/KacperKapi-${RELEASE_TAG}.apk" \
+              "dist/KacperKapi-${RELEASE_TAG}.aab" \
+              --repo "$RELEASE_REPO" \
+              --target main \
+              --title "Kacper & Kapi: The Game $RELEASE_TAG" \
+              --generate-notes
+          fi
