@@ -82,7 +82,7 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
                 Spacer(Modifier.weight(1f))
                 Surface(shape = CircleShape, color = Parchment) {
                     Text(
-                        "${world.icon} ${stage.number}/${GameRules.STAGES_PER_WORLD}",
+                        "${world.icon} ${stage.number}/${world.stages.size}",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         fontWeight = FontWeight.Black
                     )
@@ -109,6 +109,7 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
             ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 900.dp)) {
                 if (attraction != null) {
                     WikimediaPhoto(
+                        stageId = stage.id,
                         fileName = attraction.photoFileName,
                         searchQuery = attraction.photoSearchQuery,
                         contentDescription = stage.name(language),
@@ -175,12 +176,12 @@ private fun storyLabel(language: String, key: String): String {
         "did_you_know" -> when (l) { "en" -> "Did you know?"; "de" -> "Wusstest du?"; "es" -> "¿Sabías que…?"; "it" -> "Lo sapevi?"; "sk" -> "Vedeli ste, že?"; else -> "Czy wiesz, że?" }
         "listen" -> when (l) { "en" -> "Listen"; "de" -> "Anhören"; "es" -> "Escuchar"; "it" -> "Ascolta"; "sk" -> "Vypočuť"; else -> "Posłuchaj" }
         "photo_offline" -> when (l) {
-            "en" -> "The real photo is downloaded on first view and then kept on the device for offline viewing."
-            "de" -> "Das echte Foto wird beim ersten Anzeigen geladen und danach für die Offline-Nutzung auf dem Gerät gespeichert."
-            "es" -> "La foto real se descarga al verla por primera vez y queda guardada para verla sin conexión."
-            "it" -> "La foto reale viene scaricata alla prima apertura e resta sul dispositivo per la visualizzazione offline."
-            "sk" -> "Skutočná fotografia sa stiahne pri prvom zobrazení a potom zostane v zariadení na použitie offline."
-            else -> "Prawdziwe zdjęcie jest pobierane przy pierwszym otwarciu tej karty, a potem zostaje na urządzeniu do oglądania offline."
+            "en" -> "Attraction photo is included in the app and works offline."
+            "de" -> "Das Foto der Attraktion ist in der App enthalten und funktioniert offline."
+            "es" -> "La foto de la atracción está incluida en la app y funciona sin conexión."
+            "it" -> "La foto dell’attrazione è inclusa nell’app e funziona offline."
+            "sk" -> "Fotografia atrakcie je súčasťou aplikácie a funguje offline."
+            else -> "Zdjęcie atrakcji jest wbudowane w aplikację i działa offline."
         }
         else -> key
     }
@@ -258,9 +259,9 @@ fun DailyMissionIntroScreen(progress: GameProgress, onStart: () -> Unit, onBack:
                     Surface(shape = RoundedCornerShape(15.dp), color = BrightGreen.copy(.17f)) {
                         Text("✅ ${stringResource(R.string.daily_done_today)}", modifier = Modifier.padding(12.dp), fontWeight = FontWeight.Bold, color = AdventureGreen)
                     }
-                    Spacer(Modifier.height(10.dp))
+                } else {
+                    PrimaryGameButton(stringResource(R.string.start_mission), onStart, Modifier.fillMaxWidth())
                 }
-                PrimaryGameButton(if (completedToday) stringResource(R.string.play_again) else stringResource(R.string.start_daily), onStart, Modifier.fillMaxWidth())
             }
         }
     }

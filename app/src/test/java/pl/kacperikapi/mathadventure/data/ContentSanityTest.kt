@@ -7,10 +7,10 @@ import org.junit.Test
 
 class ContentSanityTest {
     @Test
-    fun hasSevenWorldsAndFortyNineStages() {
+    fun hasSevenWorldsAndSeventyStages() {
         assertEquals(7, GameContent.worlds.size)
-        assertTrue(GameContent.worlds.all { it.stages.size == GameRules.STAGES_PER_WORLD })
-        assertEquals(49, GameContent.worlds.sumOf { it.stages.size })
+        assertTrue(GameContent.worlds.all { it.stages.size == 10 })
+        assertEquals(70, GameContent.worlds.sumOf { it.stages.size })
     }
 
     @Test
@@ -33,8 +33,8 @@ class ContentSanityTest {
         AppLanguages.supported.forEachIndexed { languageIndex, language ->
             LearningCategory.entries.forEachIndexed { categoryIndex, category ->
                 for (age in GameRules.MIN_AGE..GameRules.MAX_AGE) {
-                    val stage = GameContent.worlds[(languageIndex + categoryIndex) % GameContent.worlds.size]
-                        .stages[(age - GameRules.MIN_AGE).coerceIn(0, GameRules.STAGES_PER_WORLD - 1)]
+                    val world = GameContent.worlds[(languageIndex + categoryIndex) % GameContent.worlds.size]
+                    val stage = world.stages[(age - GameRules.MIN_AGE).coerceIn(0, world.stages.lastIndex)]
                     repeat(8) { sample ->
                         val q = LocalizedQuestionFactory.generate(
                             category = category,

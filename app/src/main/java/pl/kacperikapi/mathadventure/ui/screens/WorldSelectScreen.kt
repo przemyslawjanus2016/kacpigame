@@ -23,7 +23,6 @@ import pl.kacperikapi.mathadventure.R
 import pl.kacperikapi.mathadventure.data.DevOptions
 import pl.kacperikapi.mathadventure.data.GameContent
 import pl.kacperikapi.mathadventure.data.GameProgress
-import pl.kacperikapi.mathadventure.data.GameRules
 import pl.kacperikapi.mathadventure.data.PremiumAccess
 import pl.kacperikapi.mathadventure.data.WorldDefinition
 import pl.kacperikapi.mathadventure.ui.components.GameTitle
@@ -34,6 +33,8 @@ import pl.kacperikapi.mathadventure.ui.theme.*
 fun WorldSelectScreen(
     progress: GameProgress,
     premiumUnlocked: Boolean,
+    activeProfileName: String,
+    onProfile: () -> Unit,
     onWorld: (Int) -> Unit,
     onPremium: () -> Unit,
     onPractice: () -> Unit,
@@ -53,7 +54,13 @@ fun WorldSelectScreen(
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             ResourceBar(progress = progress, onLanguageClick = onLanguage, onSettingsClick = onSettings)
             GameTitle(compact = !tablet)
-            Spacer(Modifier.height(12.dp))
+            TextButton(
+                onClick = onProfile,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text("👤 $activeProfileName  •  Zmień gracza", fontWeight = FontWeight.Black, color = AdventureGreen)
+            }
+            Spacer(Modifier.height(8.dp))
             if (tablet) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     HeroPanel(Modifier.weight(.9f))
@@ -161,7 +168,7 @@ private fun WorldCard(
                         !unlocked -> stringResource(R.string.locked)
                         progress.isWorldCompleted(world.id) -> "✅ ${stringResource(R.string.world_completed)}"
                         DevOptions.UNLOCK_ALL_CONTENT -> stringResource(R.string.preview_all_unlocked)
-                        else -> stringResource(R.string.stage_progress, maxStage.coerceAtLeast(1), GameRules.STAGES_PER_WORLD)
+                        else -> stringResource(R.string.stage_progress, maxStage.coerceAtLeast(1), world.stages.size)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = if (canOpen || world.id == PremiumAccess.FREE_WORLD_ID) AdventureGreen else LockedGrey

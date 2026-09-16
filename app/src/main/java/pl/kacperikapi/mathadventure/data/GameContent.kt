@@ -190,7 +190,7 @@ object GameContent {
     )
 
     private fun stages(worldId: Int, names: List<Pair<String, String>>): List<Stage> =
-        names.take(GameRules.STAGES_PER_WORLD).mapIndexed { index, pair ->
+        names.mapIndexed { index, pair ->
             val p = route[index]
             Stage(
                 id = "w${worldId}s${index + 1}",

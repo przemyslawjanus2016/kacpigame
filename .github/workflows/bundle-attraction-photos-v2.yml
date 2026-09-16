@@ -1,0 +1,86 @@
+name: Bundle attraction photos v2
+
+on:
+  push:
+    branches:
+      - foundation-v0.5.3
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout foundation branch
+        uses: actions/checkout@v4
+        with:
+          ref: foundation-v0.5.3
+          fetch-depth: 0
+
+      - name: Check one-time marker
+        id: gate
+        shell: bash
+        run: |
+          if [ -f .bundle_photos_v2_pending ]; then
+            echo "run_bundle=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_bundle=false" >> "$GITHUB_OUTPUT"
+            echo "No photo-bundle marker; nothing to do."
+          fi
+
+      - name: Set up Python
+        if: steps.gate.outputs.run_bundle == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Patch v0.5.3 foundation and onboarding
+        if: steps.gate.outputs.run_bundle == 'true'
+        run: python tools/patch_v053_foundation.py
+
+      - name: Install image tooling
+        if: steps.gate.outputs.run_bundle == 'true'
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Download and optimize open-licensed attraction photos
+        if: steps.gate.outputs.run_bundle == 'true'
+        run: python tools/bundle_attraction_photos.py
+
+      - name: Set up JDK 17
+        if: steps.gate.outputs.run_bundle == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        if: steps.gate.outputs.run_bundle == 'true'
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Test and build offline-photo version
+        if: steps.gate.outputs.run_bundle == 'true'
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest assembleDebug
+
+      - name: Commit fixed foundation and bundled photos
+        if: steps.gate.outputs.run_bundle == 'true'
+        shell: bash
+        run: |
+          rm -f .bundle_photos_v2_pending
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The patch/build may modify additional tracked files (for example the
+          # Gradle wrapper). Stage the complete intended working tree so rebase
+          # never fails because of leftover unstaged changes.
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit."
+          else
+            git commit -m "Finish v0.5.3 onboarding and offline photos"
+          fi
+          # This run starts from the current branch tip. A concurrent update is
+          # unlikely, but rebase safely before pushing now that the tree is clean.
+          git pull --rebase origin foundation-v0.5.3
+          git push origin HEAD:foundation-v0.5.3
