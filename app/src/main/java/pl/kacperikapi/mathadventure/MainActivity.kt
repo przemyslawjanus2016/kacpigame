@@ -67,8 +67,8 @@ class MainActivity : ComponentActivity() {
     @Suppress("DEPRECATION")
     private fun applyLanguageSafely(tag: String) {
         runCatching {
-            val safeTag = if (tag == "en") "en" else "pl"
-            val locale = Locale.forLanguageTag(safeTag)
+            val safeTag = AppLanguages.normalize(tag)
+            val locale = AppLanguages.profile(safeTag).ttsLocale
             Locale.setDefault(locale)
             val configuration = resources.configuration
             configuration.setLocale(locale)
@@ -139,7 +139,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
     }
 
     fun switchLanguage() {
-        val next = if (store.loadLanguage() == "en") "pl" else "en"
+        val next = AppLanguages.next(store.loadLanguage())
         store.saveLanguage(next)
         onLanguageChanged()
     }
@@ -282,11 +282,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
                                 }
                             }
                         } else if (isAdventure) {
-                            progressionNotice = if (store.loadLanguage() == "en") {
-                                "You got ${result.correct}/${result.total}. ${GameRules.requirementEn()} The next stage is still locked."
-                            } else {
-                                "Masz ${result.correct}/${result.total} poprawnych odpowiedzi. ${GameRules.requirementPl()} Kolejny etap pozostaje zablokowany."
-                            }
+                            progressionNotice = GameRules.failedNotice(store.loadLanguage(), result.correct, result.total)
                         }
 
                         persist(
