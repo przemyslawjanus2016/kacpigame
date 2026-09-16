@@ -124,6 +124,7 @@ class MainActivity : ComponentActivity() {
 
 private sealed interface Screen {
     data object Splash : Screen
+    data object Profiles : Screen
     data object Worlds : Screen
     data class Map(val worldId: Int) : Screen
     data class Story(val worldId: Int, val stageNumber: Int) : Screen
@@ -145,6 +146,7 @@ private fun GameApp(
     onLanguageChanged: () -> Unit
 ) {
     var screen by remember { mutableStateOf<Screen>(Screen.Splash) }
+    var profiles by remember { mutableStateOf(store.profiles()) }
     var progress by remember { mutableStateOf(store.load()) }
     var narratorEnabled by remember { mutableStateOf(store.loadNarratorEnabled()) }
     var soundEnabled by remember { mutableStateOf(store.loadSoundEnabled()) }
@@ -165,9 +167,10 @@ private fun GameApp(
         onLanguageChanged()
     }
 
-    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash) {
+    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && !(screen == Screen.Profiles && store.activeProfile() == null)) {
         screen = when (val current = screen) {
-            Screen.Splash -> Screen.Worlds
+            Screen.Splash -> Screen.Profiles
+            Screen.Profiles -> Screen.Worlds
             Screen.Worlds -> Screen.Worlds
             is Screen.Map -> Screen.Worlds
             is Screen.Story -> Screen.Map(current.worldId)
@@ -200,10 +203,32 @@ private fun GameApp(
     }
 
     when (val current = screen) {
-        Screen.Splash -> SplashScreen { screen = Screen.Worlds }
+        Screen.Splash -> SplashScreen { screen = Screen.Profiles }
+        Screen.Profiles -> ProfileSelectScreen(
+            profiles = profiles,
+            activeProfileId = store.activeProfileId(),
+            onSelect = { profile ->
+                store.selectProfile(profile.id)
+                progress = store.load()
+                selectedStages = GameContent.worlds.associate { it.id to progress.availableMaxStage(it.id).coerceAtLeast(1) }
+                progressionNotice = null
+                screen = Screen.Worlds
+            },
+            onAdd = { name ->
+                store.addProfile(name)
+                profiles = store.profiles()
+                progress = store.load()
+                selectedStages = GameContent.worlds.associate { it.id to 1 }
+                progressionNotice = null
+                screen = Screen.Worlds
+            },
+            onBack = if (store.activeProfile() != null) ({ screen = Screen.Worlds }) else null
+        )
         Screen.Worlds -> WorldSelectScreen(
             progress = progress,
             premiumUnlocked = billingState.premiumUnlocked,
+            activeProfileName = store.activeProfile()?.name ?: "Gracz",
+            onProfile = { profiles = store.profiles(); screen = Screen.Profiles },
             onWorld = { worldId ->
                 when {
                     PremiumAccess.shouldShowPaywall(worldId, billingState.premiumUnlocked) -> screen = Screen.Premium
@@ -217,7 +242,8 @@ private fun GameApp(
                 } else {
                     PremiumAccess.FREE_WORLD_ID
                 }
-                val stage = progress.maxStage(worldId).coerceIn(1, GameRules.STAGES_PER_WORLD)
+                val world = GameContent.world(worldId)
+                val stage = progress.maxStage(worldId).coerceIn(1, world.stages.size)
                 screen = Screen.Categories(worldId, stage)
             },
             onDaily = { screen = Screen.DailyIntro },
@@ -230,7 +256,7 @@ private fun GameApp(
         is Screen.Map -> {
             val safeWorldId = current.worldId.coerceIn(1, GameContent.worlds.size)
             val world = GameContent.world(safeWorldId)
-            val maxStage = progress.availableMaxStage(safeWorldId).coerceIn(1, GameRules.STAGES_PER_WORLD)
+            val maxStage = progress.availableMaxStage(safeWorldId).coerceIn(1, world.stages.size)
             val selected = selectedStages[safeWorldId]?.coerceIn(1, maxStage) ?: 1
             AdventureMapScreen(
                 world = world,
@@ -261,10 +287,12 @@ private fun GameApp(
             onBack = { screen = Screen.Map(current.worldId) }
         )
         is Screen.Game -> {
-            val stage = if (current.daily) dailyStage(billingState.premiumUnlocked) else GameContent.stage(
-                current.worldId.coerceIn(1, GameContent.worlds.size),
-                current.stageNumber.coerceIn(1, GameRules.STAGES_PER_WORLD)
-            )
+            val stage = if (current.daily) {
+                dailyStage(billingState.premiumUnlocked)
+            } else {
+                val safeWorld = GameContent.world(current.worldId.coerceIn(1, GameContent.worlds.size))
+                GameContent.stage(safeWorld.id, current.stageNumber.coerceIn(1, safeWorld.stages.size))
+            }
             LearningGameScreen(
                 stage = stage,
                 fixedCategory = current.category,
@@ -320,7 +348,7 @@ private fun GameApp(
                                 starGain = result.earnedStars - previousStars
                                 stageStars[stage.id] = result.earnedStars
                             }
-                            if (stage.number < GameRules.STAGES_PER_WORLD) {
+                            if (stage.number < GameContent.world(stage.worldId).stages.size) {
                                 val nextStage = stage.number + 1
                                 maxByWorld[stage.worldId] = maxOf(progress.maxStage(stage.worldId), nextStage)
                                 selectedStages = selectedStages + (stage.worldId to nextStage)
@@ -403,7 +431,8 @@ private fun dailyStage(premiumUnlocked: Boolean): Stage {
     } else {
         PremiumAccess.FREE_WORLD_ID
     }
-    val stageNumber = ((today.dayOfMonth - 1) % GameRules.STAGES_PER_WORLD) + 1
+    val stageCount = GameContent.world(worldId).stages.size
+    val stageNumber = ((today.dayOfMonth - 1) % stageCount) + 1
     return Stage(
         id = "daily-${today}",
         worldId = worldId,
@@ -448,7 +477,7 @@ private fun SplashScreen(onDone: () -> Unit) {
         ) {
             Text(stringResource(R.string.brand_full_name), fontSize = 32.sp, fontWeight = FontWeight.Black, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)
             Text(stringResource(R.string.game_subtitle_v2), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = StarYellow, textAlign = TextAlign.Center)
-            Text(stringResource(R.string.seven_worlds_one_adventure), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)
+            Text("${GameContent.worlds.size} światów • kolejne przygody będą dochodzić w aktualizacjach", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)
             Spacer(Modifier.height(16.dp))
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(.72f).height(7.dp).clip(RoundedCornerShape(99.dp)),

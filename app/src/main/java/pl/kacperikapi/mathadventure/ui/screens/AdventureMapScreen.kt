@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pl.kacperikapi.mathadventure.R
+import pl.kacperikapi.mathadventure.data.GameContent
 import pl.kacperikapi.mathadventure.data.GameProgress
 import pl.kacperikapi.mathadventure.data.GameRules
 import pl.kacperikapi.mathadventure.data.Stage
@@ -43,9 +44,9 @@ fun AdventureMapScreen(
     fun lockedMessage(item: Stage): String = when {
         !progress.isWorldUnlocked(item.worldId) -> {
             if (language == "en")
-                "Finish stage ${GameRules.STAGES_PER_WORLD} in the previous world first."
+                "Finish the previous world first."
             else
-                "Najpierw ukończ etap ${GameRules.STAGES_PER_WORLD} w poprzednim świecie."
+                "Najpierw ukończ poprzedni świat."
         }
         item.number > 1 -> {
             if (language == "en")
@@ -102,7 +103,7 @@ fun AdventureMapScreen(
                         modifier = Modifier.weight(1.45f),
                         height = 650.dp
                     )
-                    MissionPanel(stage, language, onPlay, onPractice, Modifier.weight(.7f))
+                    MissionPanel(stage, world.stages.size, language, onPlay, onPractice, Modifier.weight(.7f))
                 }
             } else {
                 StageRouteMap(
@@ -114,7 +115,7 @@ fun AdventureMapScreen(
                     height = 620.dp
                 )
                 Spacer(Modifier.height(10.dp))
-                MissionPanel(stage, language, onPlay, onPractice)
+                MissionPanel(stage, world.stages.size, language, onPlay, onPractice)
             }
             Spacer(Modifier.height(20.dp))
         }
@@ -122,16 +123,16 @@ fun AdventureMapScreen(
 }
 
 @Composable
-private fun MissionPanel(stage: Stage, language: String, onPlay: () -> Unit, onPractice: () -> Unit, modifier: Modifier = Modifier) {
+private fun MissionPanel(stage: Stage, totalStages: Int, language: String, onPlay: () -> Unit, onPractice: () -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), color = Parchment, shadowElevation = 4.dp) {
         Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.current_mission), color = AdventureGreen, fontWeight = FontWeight.Bold)
             Text(stage.name(language), fontSize = 23.sp, fontWeight = FontWeight.Black, color = Ink)
             Text(
                 if (language == "en")
-                    "Stage ${stage.number}/${GameRules.STAGES_PER_WORLD} • difficulty around age ${stage.targetAge}"
+                    "Stage ${stage.number}/$totalStages • difficulty around age ${stage.targetAge}"
                 else
-                    "Etap ${stage.number}/${GameRules.STAGES_PER_WORLD} • poziom ok. ${stage.targetAge} lat",
+                    "Etap ${stage.number}/$totalStages • poziom ok. ${stage.targetAge} lat",
                 style = MaterialTheme.typography.bodySmall,
                 color = WoodBrown
             )

@@ -82,7 +82,7 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
                 Spacer(Modifier.weight(1f))
                 Surface(shape = CircleShape, color = Parchment) {
                     Text(
-                        "${world.icon} ${stage.number}/${GameRules.STAGES_PER_WORLD}",
+                        "${world.icon} ${stage.number}/${world.stages.size}",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         fontWeight = FontWeight.Black
                     )
@@ -175,12 +175,12 @@ private fun storyLabel(language: String, key: String): String {
         "did_you_know" -> when (l) { "en" -> "Did you know?"; "de" -> "Wusstest du?"; "es" -> "¿Sabías que…?"; "it" -> "Lo sapevi?"; "sk" -> "Vedeli ste, že?"; else -> "Czy wiesz, że?" }
         "listen" -> when (l) { "en" -> "Listen"; "de" -> "Anhören"; "es" -> "Escuchar"; "it" -> "Ascolta"; "sk" -> "Vypočuť"; else -> "Posłuchaj" }
         "photo_offline" -> when (l) {
-            "en" -> "The real photo is downloaded on first view and then kept on the device for offline viewing."
-            "de" -> "Das echte Foto wird beim ersten Anzeigen geladen und danach für die Offline-Nutzung auf dem Gerät gespeichert."
-            "es" -> "La foto real se descarga al verla por primera vez y queda guardada para verla sin conexión."
-            "it" -> "La foto reale viene scaricata alla prima apertura e resta sul dispositivo per la visualizzazione offline."
-            "sk" -> "Skutočná fotografia sa stiahne pri prvom zobrazení a potom zostane v zariadení na použitie offline."
-            else -> "Prawdziwe zdjęcie jest pobierane przy pierwszym otwarciu tej karty, a potem zostaje na urządzeniu do oglądania offline."
+            "en" -> "Attraction photos are prepared for offline use; when a bundled photo is unavailable, the app can still use its saved copy."
+            "de" -> "Attraktionsfotos sind für die Offline-Nutzung vorbereitet; falls ein eingebettetes Foto fehlt, kann die App weiterhin die gespeicherte Kopie verwenden."
+            "es" -> "Las fotos de las atracciones están preparadas para usarse sin conexión; si falta una foto integrada, la app puede usar su copia guardada."
+            "it" -> "Le foto delle attrazioni sono preparate per l’uso offline; se manca una foto integrata, l’app può usare la copia salvata."
+            "sk" -> "Fotografie atrakcií sú pripravené na použitie offline; ak vložená fotografia chýba, aplikácia môže použiť uloženú kópiu."
+            else -> "Zdjęcia atrakcji są przygotowane do działania offline; jeśli nie ma jeszcze wersji wbudowanej, aplikacja może użyć zapisanej kopii."
         }
         else -> key
     }
