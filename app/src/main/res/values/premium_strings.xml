@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="premium_full_version">Pełna wersja</string>
+    <string name="premium_unlock_title">Odblokuj całą przygodę</string>
+    <string name="premium_unlock_description">Wieliczka zostaje darmowa. Pełna wersja odblokowuje Kraków, Tatry, Rzym, Londyn, Mediolan i Maltę.</string>
+    <string name="premium_feature_worlds">6 dodatkowych światów i 42 kolejne misje</string>
+    <string name="premium_feature_no_ads">Bez reklam i bez abonamentu</string>
+    <string name="premium_feature_languages">Wszystkie języki, pytania i aktualizacje zawartości</string>
+    <string name="premium_ask_parent">Poproś rodzica o odblokowanie</string>
+    <string name="premium_parent_check_title">Strefa rodzica</string>
+    <string name="premium_parent_check_message">Aby przejść do zakupu, rozwiąż działanie: %1$d × %2$d − %3$d</string>
+    <string name="premium_parent_answer_hint">Wynik</string>
+    <string name="premium_parent_wrong">Niepoprawny wynik. Spróbuj ponownie.</string>
+    <string name="premium_continue_purchase">Przejdź do zakupu</string>
+    <string name="premium_buy">Odblokuj pełną wersję</string>
+    <string name="premium_buy_price">Odblokuj za %1$s</string>
+    <string name="premium_restore">Przywróć zakup</string>
+    <string name="premium_owned">Pełna wersja jest odblokowana na tym koncie Google Play.</string>
+    <string name="premium_pending">Zakup oczekuje na potwierdzenie w Google Play. Dostęp włączy się po zakończeniu płatności.</string>
+    <string name="premium_play_unavailable">Nie można połączyć się z Google Play. Sprawdź internet i aplikację Sklep Play.</string>
+    <string name="premium_product_missing">Produkt nie jest jeszcze dostępny w Google Play. Utwórz i aktywuj full_game_unlock w Play Console.</string>
+    <string name="premium_purchase_cancelled">Zakup został anulowany.</string>
+    <string name="premium_purchase_error">Nie udało się zakończyć zakupu. Spróbuj ponownie.</string>
+    <string name="premium_required">Wymaga pełnej wersji</string>
+    <string name="premium_free_world">Darmowy świat</string>
+    <string name="premium_purchase_note">Zakup jednorazowy. Po reinstalacji użyj tego samego konta Google Play, aby przywrócić dostęp.</string>
+    <string name="premium_manage">Pełna wersja / zakup</string>
+</resources>
