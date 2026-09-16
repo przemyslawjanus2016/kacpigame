@@ -30,6 +30,8 @@ data class CategoryInfo(
     val icon: String
 )
 
+private fun usePolish(language: String): Boolean = AppLanguages.normalize(language) == "pl"
+
 data class StoryBeat(
     val titlePl: String,
     val titleEn: String,
@@ -39,9 +41,9 @@ data class StoryBeat(
     val factEn: String,
     val emoji: String = "🐾"
 ) {
-    fun title(language: String) = if (language == "en") titleEn else titlePl
-    fun text(language: String) = if (language == "en") textEn else textPl
-    fun fact(language: String) = if (language == "en") factEn else factPl
+    fun title(language: String) = if (usePolish(language)) titlePl else titleEn
+    fun text(language: String) = if (usePolish(language)) textPl else textEn
+    fun fact(language: String) = if (usePolish(language)) factPl else factEn
 }
 
 data class AttractionInfo(
@@ -56,11 +58,9 @@ data class AttractionInfo(
     val sourcePage: String,
     val photoSearchQuery: String? = null
 ) {
-    fun description(language: String): String = if (language == "en") descriptionEn else descriptionPl
-    fun fact(language: String): String = if (language == "en") factEn else factPl
-    fun credit(language: String): String =
-        if (language == "en") "Photo: $photoAuthor • $photoLicense • Wikimedia Commons"
-        else "Zdjęcie: $photoAuthor • $photoLicense • Wikimedia Commons"
+    fun description(language: String): String = if (usePolish(language)) descriptionPl else descriptionEn
+    fun fact(language: String): String = if (usePolish(language)) factPl else factEn
+    fun credit(language: String): String = photoCredit(language, photoAuthor, photoLicense)
 }
 
 data class CommonsPhotoAttribution(
@@ -68,10 +68,16 @@ data class CommonsPhotoAttribution(
     val license: String,
     val sourcePage: String
 ) {
-    fun credit(language: String): String = if (language == "en")
-        "Photo: $author • $license • Wikimedia Commons"
-    else
-        "Zdjęcie: $author • $license • Wikimedia Commons"
+    fun credit(language: String): String = photoCredit(language, author, license)
+}
+
+private fun photoCredit(language: String, author: String, license: String): String = when (AppLanguages.normalize(language)) {
+    "de" -> "Foto: $author • $license • Wikimedia Commons"
+    "es" -> "Foto: $author • $license • Wikimedia Commons"
+    "it" -> "Foto: $author • $license • Wikimedia Commons"
+    "sk" -> "Fotografia: $author • $license • Wikimedia Commons"
+    "en" -> "Photo: $author • $license • Wikimedia Commons"
+    else -> "Zdjęcie: $author • $license • Wikimedia Commons"
 }
 
 data class WorldDefinition(
@@ -84,7 +90,7 @@ data class WorldDefinition(
     @DrawableRes val thumbnailRes: Int? = null,
     val stages: List<Stage>
 ) {
-    fun subtitle(language: String): String = if (language == "en") subtitleEn else subtitlePl
+    fun subtitle(language: String): String = if (usePolish(language)) subtitlePl else subtitleEn
 }
 
 data class Stage(
@@ -98,7 +104,7 @@ data class Stage(
     val y: Float,
     val targetAge: Int = GameRules.targetAge(number)
 ) {
-    fun name(language: String): String = if (language == "en") nameEn else namePl
+    fun name(language: String): String = if (usePolish(language)) namePl else nameEn
 }
 
 data class MatchPair(
@@ -107,8 +113,8 @@ data class MatchPair(
     val rightPl: String,
     val rightEn: String
 ) {
-    fun left(language: String) = if (language == "en") leftEn else leftPl
-    fun right(language: String) = if (language == "en") rightEn else rightPl
+    fun left(language: String) = if (usePolish(language)) leftPl else leftEn
+    fun right(language: String) = if (usePolish(language)) rightPl else rightEn
 }
 
 data class LearningQuestion(
@@ -127,11 +133,11 @@ data class LearningQuestion(
     val correctOrderPl: List<String> = emptyList(),
     val correctOrderEn: List<String> = emptyList()
 ) {
-    fun prompt(language: String): String = if (language == "en") promptEn else promptPl
-    fun options(language: String): List<String> = if (language == "en") optionsEn else optionsPl
-    fun hint(language: String): String = if (language == "en") hintEn else hintPl
+    fun prompt(language: String): String = if (usePolish(language)) promptPl else promptEn
+    fun options(language: String): List<String> = if (usePolish(language)) optionsPl else optionsEn
+    fun hint(language: String): String = if (usePolish(language)) hintPl else hintEn
     fun correctAnswer(language: String): String = options(language).getOrElse(correctIndex) { "" }
-    fun correctOrder(language: String): List<String> = if (language == "en") correctOrderEn else correctOrderPl
+    fun correctOrder(language: String): List<String> = if (usePolish(language)) correctOrderPl else correctOrderEn
 }
 
 data class CategoryStats(
