@@ -15,8 +15,8 @@ android {
         applicationId = "pl.janusdigital.kacperikapi"
         minSdk = 26
         targetSdk = 36
-        versionCode = 18
-        versionName = "0.5.0"
+        versionCode = 19
+        versionName = "0.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -87,6 +87,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.activity:activity-compose:1.12.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    implementation("com.android.billingclient:billing-ktx:9.1.0")
 
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
