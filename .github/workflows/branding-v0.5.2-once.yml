@@ -3,7 +3,7 @@ name: Apply branding v0.5.2 once
 on:
   push:
     branches:
-      - 'branding-v0.5.2-trigger'
+      - 'branding-v0.5.2-trigger2'
 
 permissions:
   contents: write
@@ -31,14 +31,12 @@ jobs:
                   raise SystemExit(f'Expected text not found in {path}: {old!r}')
               p.write_text(s.replace(old, new, 1), encoding='utf-8')
 
-          # Central full brand name; short launcher name intentionally stays Kacper & Kapi.
           replace_once(
               'app/src/main/res/values/strings.xml',
               '    <string name="app_name">Kacper &amp; Kapi</string>\n',
               '    <string name="app_name">Kacper &amp; Kapi</string>\n    <string name="brand_full_name">Kacper &amp; Kapi: The Game</string>\n'
           )
 
-          # Splash + diagnostic branding.
           replace_once(
               'app/src/main/java/pl/kacperikapi/mathadventure/MainActivity.kt',
               'text = "Kacper i Kapi – diagnostyka',
@@ -50,7 +48,6 @@ jobs:
               'Text(stringResource(R.string.brand_full_name), fontSize = 32.sp'
           )
 
-          # Main in-app title; reduce font a little so the longer name fits phones.
           replace_once(
               'app/src/main/java/pl/kacperikapi/mathadventure/ui/components/GameChrome.kt',
               'text = "KACPER i KAPI"',
@@ -62,30 +59,18 @@ jobs:
               'fontSize = if (compact) 20.sp else 27.sp,'
           )
 
-          # Version for the next distributable build.
           replace_once('app/build.gradle.kts', 'versionCode = 19', 'versionCode = 20')
           replace_once('app/build.gradle.kts', 'versionName = "0.5.1"', 'versionName = "0.5.2"')
           Path('VERSION.txt').write_text('0.5.2\n', encoding='utf-8')
-
-          # Future GitHub release names use the new brand.
-          replace_once(
-              '.github/workflows/release.yml',
-              '--title "Kacper i Kapi $RELEASE_TAG"',
-              '--title "Kacper & Kapi: The Game $RELEASE_TAG"'
-          )
 
           Path('CHANGELOG_0.5.2.md').write_text(
               '# Kacper & Kapi: The Game — 0.5.2\n\n'
               '- Nowa pełna nazwa marki: **Kacper & Kapi: The Game**.\n'
               '- Pełna nazwa jest używana na ekranie startowym i w głównym nagłówku gry.\n'
               '- Krótka nazwa pod ikoną pozostaje **Kacper & Kapi**, aby dobrze mieściła się na ekranie telefonu.\n'
-              '- Nazwa przyszłych wydań GitHub została ujednolicona z nowym brandingiem.\n'
               '- Wersja Android: `0.5.2` (`versionCode 20`).\n',
               encoding='utf-8'
           )
-
-          # Remove this one-time workflow in the same branding commit.
-          Path('.github/workflows/branding-v0.5.2-once.yml').unlink()
           PY
 
       - name: Commit branding to main
