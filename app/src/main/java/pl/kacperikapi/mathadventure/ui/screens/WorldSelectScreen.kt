@@ -24,6 +24,7 @@ import pl.kacperikapi.mathadventure.data.DevOptions
 import pl.kacperikapi.mathadventure.data.GameContent
 import pl.kacperikapi.mathadventure.data.GameProgress
 import pl.kacperikapi.mathadventure.data.GameRules
+import pl.kacperikapi.mathadventure.data.PremiumAccess
 import pl.kacperikapi.mathadventure.data.WorldDefinition
 import pl.kacperikapi.mathadventure.ui.components.GameTitle
 import pl.kacperikapi.mathadventure.ui.components.ResourceBar
@@ -32,7 +33,9 @@ import pl.kacperikapi.mathadventure.ui.theme.*
 @Composable
 fun WorldSelectScreen(
     progress: GameProgress,
+    premiumUnlocked: Boolean,
     onWorld: (Int) -> Unit,
+    onPremium: () -> Unit,
     onPractice: () -> Unit,
     onDaily: () -> Unit,
     onPassport: () -> Unit,
@@ -54,12 +57,21 @@ fun WorldSelectScreen(
             if (tablet) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     HeroPanel(Modifier.weight(.9f))
-                    WorldGrid(progress, onWorld, Modifier.weight(1.35f))
+                    WorldGrid(progress, premiumUnlocked, onWorld, onPremium, Modifier.weight(1.35f))
                 }
             } else {
                 HeroPanel(Modifier.padding(horizontal = 12.dp))
                 Spacer(Modifier.height(12.dp))
-                WorldGrid(progress, onWorld, Modifier.padding(horizontal = 12.dp))
+                WorldGrid(progress, premiumUnlocked, onWorld, onPremium, Modifier.padding(horizontal = 12.dp))
+            }
+            if (!premiumUnlocked && !DevOptions.UNLOCK_ALL_CONTENT) {
+                FilledTonalButton(
+                    onClick = onPremium,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp).heightIn(min = 54.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("🔐 ${stringResource(R.string.premium_unlock_title)}", fontWeight = FontWeight.Black)
+                }
             }
             ActionGrid(onDaily, onPassport, onPractice, onRewards, onParent)
             Spacer(Modifier.height(22.dp))
@@ -86,22 +98,49 @@ private fun HeroPanel(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun WorldGrid(progress: GameProgress, onWorld: (Int) -> Unit, modifier: Modifier = Modifier) {
+private fun WorldGrid(
+    progress: GameProgress,
+    premiumUnlocked: Boolean,
+    onWorld: (Int) -> Unit,
+    onPremium: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(9.dp)) {
         Text(stringResource(R.string.choose_world), fontWeight = FontWeight.Black, fontSize = 24.sp, color = WoodBrown)
         GameContent.worlds.forEach { world ->
-            WorldCard(world, progress.isWorldUnlocked(world.id), progress.maxStage(world.id), progress, onWorld)
+            WorldCard(
+                world = world,
+                unlocked = progress.isWorldUnlocked(world.id),
+                premiumUnlocked = premiumUnlocked,
+                maxStage = progress.maxStage(world.id),
+                progress = progress,
+                onWorld = onWorld,
+                onPremium = onPremium
+            )
         }
     }
 }
 
 @Composable
-private fun WorldCard(world: WorldDefinition, unlocked: Boolean, maxStage: Int, progress: GameProgress, onWorld: (Int) -> Unit) {
+private fun WorldCard(
+    world: WorldDefinition,
+    unlocked: Boolean,
+    premiumUnlocked: Boolean,
+    maxStage: Int,
+    progress: GameProgress,
+    onWorld: (Int) -> Unit,
+    onPremium: () -> Unit
+) {
+    val premiumLocked = PremiumAccess.shouldShowPaywall(world.id, premiumUnlocked)
+    val canOpen = PremiumAccess.canOpenWorld(world.id, unlocked, premiumUnlocked)
+
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable(enabled = unlocked) { onWorld(world.id) },
+        modifier = Modifier.fillMaxWidth().clickable(enabled = canOpen || premiumLocked) {
+            if (premiumLocked) onPremium() else if (canOpen) onWorld(world.id)
+        },
         shape = RoundedCornerShape(18.dp),
-        color = if (unlocked) androidx.compose.ui.graphics.Color.White.copy(.92f) else LockedGrey.copy(.14f),
-        shadowElevation = if (unlocked) 3.dp else 0.dp
+        color = if (canOpen) androidx.compose.ui.graphics.Color.White.copy(.92f) else LockedGrey.copy(.14f),
+        shadowElevation = if (canOpen || premiumLocked) 3.dp else 0.dp
     ) {
         Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
             if (world.thumbnailRes != null) {
@@ -117,16 +156,25 @@ private fun WorldCard(world: WorldDefinition, unlocked: Boolean, maxStage: Int, 
                 Text(stringResource(world.nameRes), fontWeight = FontWeight.Black, color = Ink, fontSize = 18.sp)
                 Text(
                     when {
+                        world.id == PremiumAccess.FREE_WORLD_ID -> stringResource(R.string.premium_free_world)
+                        premiumLocked -> stringResource(R.string.premium_required)
                         !unlocked -> stringResource(R.string.locked)
                         progress.isWorldCompleted(world.id) -> "✅ ${stringResource(R.string.world_completed)}"
                         DevOptions.UNLOCK_ALL_CONTENT -> stringResource(R.string.preview_all_unlocked)
                         else -> stringResource(R.string.stage_progress, maxStage.coerceAtLeast(1), GameRules.STAGES_PER_WORLD)
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (unlocked) AdventureGreen else LockedGrey
+                    color = if (canOpen || world.id == PremiumAccess.FREE_WORLD_ID) AdventureGreen else LockedGrey
                 )
             }
-            Text(if (unlocked) "›" else "🔒", fontSize = 24.sp)
+            Text(
+                when {
+                    premiumLocked -> "🔐"
+                    canOpen -> "›"
+                    else -> "🔒"
+                },
+                fontSize = 24.sp
+            )
         }
     }
 }
