@@ -124,6 +124,7 @@ class MainActivity : ComponentActivity() {
 
 private sealed interface Screen {
     data object Splash : Screen
+    data object Language : Screen
     data object Profiles : Screen
     data object Worlds : Screen
     data class Map(val worldId: Int) : Screen
@@ -167,9 +168,10 @@ private fun GameApp(
         onLanguageChanged()
     }
 
-    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && !(screen == Screen.Profiles && store.activeProfile() == null)) {
+    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && screen != Screen.Language && !(screen == Screen.Profiles && store.activeProfile() == null)) {
         screen = when (val current = screen) {
-            Screen.Splash -> Screen.Profiles
+            Screen.Splash -> Screen.Language
+            Screen.Language -> Screen.Language
             Screen.Profiles -> Screen.Worlds
             Screen.Worlds -> Screen.Worlds
             is Screen.Map -> Screen.Worlds
@@ -203,7 +205,16 @@ private fun GameApp(
     }
 
     when (val current = screen) {
-        Screen.Splash -> SplashScreen { screen = Screen.Profiles }
+        Screen.Splash -> SplashScreen {
+            screen = if (store.hasSavedLanguage()) Screen.Profiles else Screen.Language
+        }
+        Screen.Language -> LanguageSelectScreen(
+            suggestedLanguage = store.loadLanguage(),
+            onSelect = { tag ->
+                store.saveLanguage(tag)
+                onLanguageChanged()
+            }
+        )
         Screen.Profiles -> ProfileSelectScreen(
             profiles = profiles,
             activeProfileId = store.activeProfileId(),

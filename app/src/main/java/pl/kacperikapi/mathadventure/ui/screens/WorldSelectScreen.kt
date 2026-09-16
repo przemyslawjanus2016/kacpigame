@@ -108,8 +108,6 @@ private fun HeroPanel(modifier: Modifier = Modifier) {
 private fun WorldGrid(
     progress: GameProgress,
     premiumUnlocked: Boolean,
-    activeProfileName: String,
-    onProfile: () -> Unit,
     onWorld: (Int) -> Unit,
     onPremium: () -> Unit,
     modifier: Modifier = Modifier

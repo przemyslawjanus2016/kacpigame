@@ -268,25 +268,98 @@ fun DailyMissionIntroScreen(progress: GameProgress, onStart: () -> Unit, onBack:
 }
 
 @Composable
-fun RewardsScreen(progress: GameProgress, onBack: () -> Unit) {
+fun SettingsScreen(
+    narratorEnabled: Boolean,
+    soundEnabled: Boolean,
+    onNarratorChanged: (Boolean) -> Unit,
+    onSoundChanged: (Boolean) -> Unit,
+    onLanguage: () -> Unit,
+    onResetAll: () -> Unit,
+    onBack: () -> Unit
+) {
     val language = AppLanguages.normalize(LocalConfiguration.current.locales[0].language)
+    var confirmReset by remember { mutableStateOf(false) }
+    var resetDone by remember { mutableStateOf(false) }
+
+    if (confirmReset) {
+        AlertDialog(
+            onDismissRequest = { confirmReset = false },
+            title = { Text(stringResource(R.string.reset_all_data_title), fontWeight = FontWeight.Black) },
+            text = { Text(stringResource(R.string.reset_all_data_message)) },
+            confirmButton = {
+                Button(
+                    onClick = { confirmReset = false; onResetAll(); resetDone = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(R.string.reset_confirm)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text(stringResource(R.string.cancel)) } }
+        )
+    }
+
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(SkyBlue.copy(.25f), Cream, Parchment))).statusBarsPadding()) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Row(Modifier.fillMaxWidth()) { TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") } }
-            Text("🏆 ${stringResource(R.string.rewards)}", fontSize = 32.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
-            Spacer(Modifier.height(12.dp))
-            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 760.dp)) {
-                Text("⭐ ${progress.stars}   🪙 ${progress.coins}", fontSize = 24.sp, fontWeight = FontWeight.Black, color = WoodBrown)
-                Spacer(Modifier.height(12.dp))
-                GameContent.worlds.forEach { world ->
-                    val done = progress.isWorldCompleted(world.id)
-                    Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (done) "🏅" else "▫️", fontSize = 25.sp)
-                        Spacer(Modifier.width(10.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(world.nameRes), fontWeight = FontWeight.Bold)
-                            Text(world.subtitle(language), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
-                        }
+            Text("⚙️ ${stringResource(R.string.settings)}", fontSize = 30.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
+            Spacer(Modifier.height(18.dp))
+
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 650.dp)) {
+                SettingToggle("🔊", stringResource(R.string.narrator), stringResource(R.string.narrator_desc), narratorEnabled, onNarratorChanged)
+                HorizontalDivider(color = WoodBrown.copy(.15f))
+                SettingToggle("🎵", stringResource(R.string.sound_effects), stringResource(R.string.sound_effects_desc), soundEnabled, onSoundChanged)
+                HorizontalDivider(color = WoodBrown.copy(.15f))
+                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("🌐", fontSize = 25.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.language), fontWeight = FontWeight.Black)
+                        Text(stringResource(R.string.language_desc), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
+                    }
+                    OutlinedButton(onClick = onLanguage) {
+                        Text("${AppLanguages.profile(language).countryFlag} ${AppLanguages.label(language)} ›", fontWeight = FontWeight.Black)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Surface(shape = RoundedCornerShape(16.dp), color = BrightGreen.copy(.11f)) {
+                    Text(stringResource(R.string.offline_safe_note), modifier = Modifier.padding(12.dp), color = Ink)
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 650.dp)) {
+                Text("⬆️ ${stringResource(R.string.updates)}", fontSize = 20.sp, fontWeight = FontWeight.Black, color = WoodBrown)
+                Text(stringResource(R.string.updates_desc), color = Ink)
+                Spacer(Modifier.height(5.dp))
+                Text(stringResource(R.string.current_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.github_release_note), style = MaterialTheme.typography.labelSmall, color = WoodBrown)
+            }
+
+            Spacer(Modifier.height(14.dp))
+            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 650.dp)) {
+                Text("🗄️ ${stringResource(R.string.data_and_progress)}", fontSize = 20.sp, fontWeight = FontWeight.Black, color = WoodBrown)
+                Spacer(Modifier.height(8.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = .72f)
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                        Text(stringResource(R.string.reset_all_data), fontSize = 18.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.reset_all_data_desc), style = MaterialTheme.typography.bodySmall, color = Ink)
+                        Spacer(Modifier.height(10.dp))
+                        Button(
+                            onClick = { confirmReset = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            shape = RoundedCornerShape(16.dp)
+                        ) { Text("🗑️  ${stringResource(R.string.reset_all_data)}", fontWeight = FontWeight.Black) }
+                    }
+                }
+                if (resetDone) {
+                    Spacer(Modifier.height(10.dp))
+                    Surface(shape = RoundedCornerShape(14.dp), color = BrightGreen.copy(.16f)) {
+                        Text("✅ ${stringResource(R.string.reset_done)}", modifier = Modifier.fillMaxWidth().padding(11.dp), color = AdventureGreen, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -296,70 +369,14 @@ fun RewardsScreen(progress: GameProgress, onBack: () -> Unit) {
 }
 
 @Composable
-fun ParentScreen(progress: GameProgress, onBack: () -> Unit) {
-    val language = AppLanguages.normalize(LocalConfiguration.current.locales[0].language)
-    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(SkyBlue.copy(.25f), Cream, Parchment))).statusBarsPadding()) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(Modifier.fillMaxWidth()) { TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") } }
-            Text("👨‍👩‍👦 ${stringResource(R.string.parent)}", fontSize = 30.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
-            Spacer(Modifier.height(14.dp))
-            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 780.dp)) {
-                Text(stringResource(R.string.parent_progress_title), fontWeight = FontWeight.Black, fontSize = 21.sp, color = WoodBrown)
-                Text("⭐ ${progress.stars}   🪙 ${progress.coins}", fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(10.dp))
-                GameContent.worlds.forEach { world ->
-                    val completed = progress.completedStages.count { it.startsWith("w${world.id}s") }
-                    Text("${world.icon} ${stringResource(world.nameRes)}: $completed/${world.stages.size}", modifier = Modifier.padding(vertical = 3.dp))
-                }
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    when (language) {
-                        "en" -> "The game, exercises and attraction photos are available offline after installation."
-                        "de" -> "Das Spiel, die Aufgaben und die Fotos der Attraktionen sind nach der Installation offline verfügbar."
-                        "es" -> "El juego, los ejercicios y las fotos de las atracciones están disponibles sin conexión después de instalar la app."
-                        "it" -> "Il gioco, gli esercizi e le foto delle attrazioni sono disponibili offline dopo l’installazione."
-                        "sk" -> "Hra, úlohy a fotografie atrakcií sú po inštalácii dostupné offline."
-                        else -> "Gra, zadania i zdjęcia atrakcji są dostępne offline po instalacji."
-                    },
-                    color = WoodBrown
-                )
-            }
+private fun SettingToggle(icon: String, title: String, description: String, checked: Boolean, onChecked: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(icon, fontSize = 25.sp)
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.Black)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = WoodBrown)
         }
-    }
-}
-
-@Composable
-fun SettingsScreen(
-    narratorEnabled: Boolean,
-    soundEnabled: Boolean,
-    onNarrator: (Boolean) -> Unit,
-    onSound: (Boolean) -> Unit,
-    onBack: () -> Unit
-) {
-    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(SkyBlue.copy(.25f), Cream, Parchment))).statusBarsPadding()) {
-        Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row(Modifier.fillMaxWidth()) { TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") } }
-            Text("⚙️ ${stringResource(R.string.settings)}", fontSize = 30.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
-            Spacer(Modifier.height(14.dp))
-            ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 660.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.narrator), fontWeight = FontWeight.Black)
-                        Text(stringResource(R.string.narrator_desc), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
-                    }
-                    Switch(checked = narratorEnabled, onCheckedChange = onNarrator)
-                }
-                Spacer(Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.sound), fontWeight = FontWeight.Black)
-                        Text(stringResource(R.string.sound_desc), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
-                    }
-                    Switch(checked = soundEnabled, onCheckedChange = onSound)
-                }
-                Spacer(Modifier.height(16.dp))
-                Text("${stringResource(R.string.version)} ${BuildConfig.VERSION_NAME}", color = WoodBrown)
-            }
-        }
+        Switch(checked = checked, onCheckedChange = onChecked)
     }
 }
