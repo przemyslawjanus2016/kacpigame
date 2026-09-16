@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Bundle one open-licensed attraction photo per game stage.
+"""Bundle open-licensed attraction photos for offline play.
 
-Curated exact Commons filenames already present in AttractionContent.kt are downloaded
-straight from Wikimedia's file redirect (no search API). Cards that currently contain a
-search query are resolved through Openverse, preferring commercial-use Creative Commons
-or public-domain images. Every image is centre-cropped to 16:9, resized to 1200x675 and
-saved as WebP for predictable APK size.
+The script is intentionally incremental: successful images stay in the repository and later
+runs only fill missing cards. Curated Commons files are tried directly first; if Wikimedia
+throttles the request, Openverse is used as a fallback. Search-only cards use Openverse.
+All images are converted to 1200x675 WebP and full attribution metadata is saved in assets.
 """
 
 from __future__ import annotations
@@ -28,6 +27,7 @@ SOURCE = ROOT / "app/src/main/java/pl/kacperikapi/mathadventure/data/AttractionC
 OUT = ROOT / "app/src/main/res/drawable-nodpi"
 ASSETS = ROOT / "app/src/main/assets"
 CREDITS = ASSETS / "attraction_photo_credits.json"
+REPORT = ASSETS / "attraction_photo_bundle_report.json"
 USER_AGENT = "KacperKapiTheGame/0.5.3 (educational Android app; open-licensed offline media)"
 ALLOWED_LICENSES = {"cc0", "pdm", "by", "by-sa"}
 EXPECTED_CARDS = 70
@@ -39,7 +39,7 @@ def parse_cards() -> list[dict]:
     str_re = re.compile(r'"((?:\\.|[^"\\])*)"')
     cards: list[dict] = []
     for kind, body in block_re.findall(text):
-        args = [bytes(s, "utf-8").decode("unicode_escape") if "\\" in s else s for s in str_re.findall(body)]
+        args = str_re.findall(body)
         if kind == "item" and len(args) >= 8:
             cards.append({
                 "kind": kind,
@@ -50,13 +50,12 @@ def parse_cards() -> list[dict]:
             })
         elif kind == "searchItem" and len(args) >= 6:
             cards.append({"kind": kind, "stage_id": args[0], "value": args[5]})
-
     if len(cards) != EXPECTED_CARDS:
         raise RuntimeError(f"Expected {EXPECTED_CARDS} attraction cards, parsed {len(cards)}")
     return cards
 
 
-def request_bytes(url: str, *, accept: str | None = None, attempts: int = 7) -> tuple[bytes, str]:
+def request_bytes(url: str, *, accept: str | None = None, attempts: int = 3, timeout: int = 30) -> tuple[bytes, str]:
     headers = {"User-Agent": USER_AGENT}
     if accept:
         headers["Accept"] = accept
@@ -64,99 +63,101 @@ def request_bytes(url: str, *, accept: str | None = None, attempts: int = 7) -> 
     for attempt in range(attempts):
         try:
             req = Request(url, headers=headers)
-            with urlopen(req, timeout=60) as response:
+            with urlopen(req, timeout=timeout) as response:
                 return response.read(), response.headers.get("Content-Type", "")
         except HTTPError as exc:
             last_error = exc
             if exc.code not in {429, 500, 502, 503, 504}:
                 raise
-            retry_after = exc.headers.get("Retry-After") if exc.headers else None
-            wait = float(retry_after) if retry_after and retry_after.isdigit() else min(45.0, 2.5 * (2 ** attempt))
-            print(f"  HTTP {exc.code}; retrying in {wait:.1f}s", flush=True)
+            wait = min(12.0, 2.0 + attempt * 3.0)
+            print(f"  HTTP {exc.code}; retry in {wait:.0f}s", flush=True)
             time.sleep(wait)
         except (URLError, TimeoutError) as exc:
             last_error = exc
-            wait = min(30.0, 2.0 * (attempt + 1))
-            print(f"  network error; retrying in {wait:.1f}s: {exc}", flush=True)
+            wait = min(8.0, 2.0 + attempt * 2.0)
+            print(f"  network retry in {wait:.0f}s: {exc}", flush=True)
             time.sleep(wait)
-    raise RuntimeError(f"Download failed after {attempts} attempts: {url} ({last_error})")
+    raise RuntimeError(f"request failed: {url} ({last_error})")
 
 
 def get_json(url: str) -> dict:
-    raw, _ = request_bytes(url, accept="application/json")
+    raw, _ = request_bytes(url, accept="application/json", attempts=4, timeout=35)
     return json.loads(raw.decode("utf-8"))
 
 
-def commons_exact(card: dict) -> tuple[str, dict]:
+def load_existing_credits() -> dict[str, dict]:
+    if not CREDITS.exists():
+        return {}
+    try:
+        return json.loads(CREDITS.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def exact_commons(card: dict) -> tuple[list[str], dict]:
     filename = card["value"]
-    redirect = "https://commons.wikimedia.org/wiki/Special:Redirect/file/" + quote(filename, safe="") + "?width=1600"
+    redirect = "https://commons.wikimedia.org/wiki/Special:Redirect/file/" + quote(filename, safe="") + "?width=1400"
     source = "https://commons.wikimedia.org/wiki/File:" + quote(filename.replace(" ", "_"), safe="()_,.-")
     credit = {
         "author": card["author"],
         "license": card["license"],
         "source": source,
         "provider": "Wikimedia Commons",
+        "title": filename,
     }
-    return redirect, credit
+    return [redirect], credit
 
 
-def openverse_search(query: str) -> tuple[list[dict], str]:
-    params = {
+def openverse_results(query: str) -> list[dict]:
+    api = "https://api.openverse.org/v1/images/?" + urlencode({
         "q": query,
         "page_size": "20",
         "mature": "false",
-    }
-    api = "https://api.openverse.org/v1/images/?" + urlencode(params)
-    data = get_json(api)
-    return data.get("results", []), api
+    })
+    return get_json(api).get("results", [])
 
 
 def score_candidate(item: dict, query: str) -> float:
     license_code = (item.get("license") or "").lower()
-    if license_code not in ALLOWED_LICENSES:
+    if license_code not in ALLOWED_LICENSES or item.get("watermarked") is True:
         return -10_000
-    if item.get("watermarked") is True:
-        return -10_000
-
     title = (item.get("title") or "").lower()
-    query_tokens = [t.lower() for t in re.findall(r"[A-Za-zÀ-ž0-9]+", query) if len(t) > 2]
-    title_hits = sum(1 for token in query_tokens if token in title)
+    tokens = [t.lower() for t in re.findall(r"[A-Za-zÀ-ž0-9]+", query) if len(t) > 2]
+    hits = sum(1 for token in tokens if token in title)
     width = int(item.get("width") or 0)
     height = int(item.get("height") or 0)
-    size_bonus = min(width, 2200) / 1000 if width else 0
-    landscape_bonus = 1.5 if width and height and width >= height else 0
-    source_bonus = 1.0 if (item.get("source") or "").lower() == "wikimedia" else 0
-    return title_hits * 4.0 + size_bonus + landscape_bonus + source_bonus
+    landscape = 1.2 if width and height and width >= height else 0.0
+    size_bonus = min(width, 2000) / 1200 if width else 0.0
+    source_bonus = 0.8 if (item.get("source") or "").lower() == "wikimedia" else 0.0
+    return hits * 4.0 + landscape + size_bonus + source_bonus
 
 
-def resolve_openverse(query: str) -> tuple[list[str], dict]:
-    results, api = openverse_search(query)
-    ranked = sorted(results, key=lambda item: score_candidate(item, query), reverse=True)
-    ranked = [item for item in ranked if score_candidate(item, query) > -1000]
-    if not ranked:
-        raise RuntimeError(f"No commercial-use open-license result from Openverse for: {query} ({api})")
-
-    # Try several ranked results because some upstream hosts reject automated image downloads.
-    best = ranked[0]
-    urls: list[str] = []
-    for item in ranked[:8]:
-        for key in ("url", "thumbnail"):
+def openverse_candidates(query: str) -> list[tuple[list[str], dict]]:
+    ranked = sorted(openverse_results(query), key=lambda item: score_candidate(item, query), reverse=True)
+    ranked = [item for item in ranked if score_candidate(item, query) > -1000][:6]
+    candidates: list[tuple[list[str], dict]] = []
+    for item in ranked:
+        license_code = (item.get("license") or "").upper()
+        version = item.get("license_version") or ""
+        label = "Public Domain" if license_code == "PDM" else ("CC0" if license_code == "CC0" else f"CC {license_code}{(' ' + version) if version else ''}")
+        urls = []
+        # Openverse thumbnails are normally smaller and more reliable for automated bundling.
+        for key in ("thumbnail", "url"):
             value = item.get(key)
             if value and value not in urls:
                 urls.append(value)
-
-    license_code = (best.get("license") or "").upper()
-    license_version = best.get("license_version") or ""
-    license_label = "Public Domain" if license_code == "PDM" else ("CC0" if license_code == "CC0" else f"CC {license_code}{(' ' + license_version) if license_version else ''}")
-    credit = {
-        "author": html.unescape(best.get("creator") or "Open-licensed photo contributor"),
-        "license": license_label,
-        "source": best.get("foreign_landing_url") or best.get("detail_url") or best.get("url") or "https://openverse.org/",
-        "provider": best.get("provider") or best.get("source") or "Openverse",
-        "openverse_id": best.get("id") or "",
-        "title": best.get("title") or query,
-    }
-    return urls, credit
+        if not urls:
+            continue
+        credit = {
+            "author": html.unescape(item.get("creator") or "Open-licensed photo contributor"),
+            "license": label,
+            "source": item.get("foreign_landing_url") or item.get("detail_url") or item.get("url") or "https://openverse.org/",
+            "provider": item.get("provider") or item.get("source") or "Openverse",
+            "openverse_id": item.get("id") or "",
+            "title": item.get("title") or query,
+        }
+        candidates.append((urls, credit))
+    return candidates
 
 
 def save_webp(stage_id: str, raw: bytes) -> None:
@@ -172,65 +173,88 @@ def save_webp(stage_id: str, raw: bytes) -> None:
     target = OUT / f"attraction_{stage_id}.webp"
     fitted.save(target, "WEBP", quality=78, method=6)
     if target.stat().st_size < 8_000:
-        raise RuntimeError(f"Generated image is suspiciously small: {target}")
+        target.unlink(missing_ok=True)
+        raise RuntimeError("generated WebP is suspiciously small")
 
 
-def download_first_working(urls: list[str]) -> bytes:
+def try_urls(urls: list[str]) -> bytes:
     errors: list[str] = []
     for url in urls:
         try:
-            raw, content_type = request_bytes(url, accept="image/*", attempts=4)
-            if len(raw) < 10_000:
-                errors.append(f"too small: {url}")
-                continue
-            if "text/html" in content_type.lower():
-                errors.append(f"HTML instead of image: {url}")
-                continue
+            raw, content_type = request_bytes(url, accept="image/*", attempts=2, timeout=35)
+            if len(raw) < 10_000 or "text/html" in content_type.lower():
+                raise RuntimeError("response is not a usable image")
             return raw
         except Exception as exc:
-            errors.append(f"{url}: {exc}")
-    raise RuntimeError("No candidate image could be downloaded: " + " | ".join(errors[-3:]))
+            errors.append(str(exc))
+    raise RuntimeError("; ".join(errors[-2:]))
+
+
+def resolve_and_download(card: dict) -> tuple[bytes, dict]:
+    if card["kind"] == "item":
+        urls, credit = exact_commons(card)
+        try:
+            return try_urls(urls), credit
+        except Exception as exact_error:
+            print(f"  direct Commons unavailable, using Openverse: {exact_error}", flush=True)
+            query = re.sub(r"\.(jpe?g|png|webp)$", "", card["value"], flags=re.I).replace("_", " ")
+    else:
+        query = card["value"]
+
+    candidates = openverse_candidates(query)
+    if not candidates:
+        raise RuntimeError(f"no suitable Openverse result for '{query}'")
+    last_error: Exception | None = None
+    for urls, credit in candidates:
+        try:
+            return try_urls(urls), credit
+        except Exception as exc:
+            last_error = exc
+    raise RuntimeError(f"all Openverse candidates failed for '{query}': {last_error}")
 
 
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     ASSETS.mkdir(parents=True, exist_ok=True)
     cards = parse_cards()
-    credits: dict[str, dict] = {}
-    failures: list[tuple[str, str]] = []
+    credits = load_existing_credits()
+    failures: dict[str, str] = {}
+    newly_bundled: list[str] = []
 
     for index, card in enumerate(cards, start=1):
         stage_id = card["stage_id"]
+        target = OUT / f"attraction_{stage_id}.webp"
+        if target.exists() and target.stat().st_size >= 8_000 and stage_id in credits:
+            print(f"[{index:02d}/{len(cards)}] {stage_id}: already bundled", flush=True)
+            continue
+
         print(f"[{index:02d}/{len(cards)}] {stage_id}: {card['value']}", flush=True)
         try:
-            if card["kind"] == "item":
-                url, credit = commons_exact(card)
-                raw = download_first_working([url])
-                # Slow down exact Commons requests to avoid HTTP 429.
-                time.sleep(1.4)
-            else:
-                urls, credit = resolve_openverse(card["value"])
-                raw = download_first_working(urls)
-                # Anonymous Openverse clients are intentionally paced.
-                time.sleep(1.1)
-
+            raw, credit = resolve_and_download(card)
             save_webp(stage_id, raw)
             credits[stage_id] = credit
+            newly_bundled.append(stage_id)
+            # Polite pacing. Commons exact files get a little more breathing room.
+            time.sleep(2.2 if card["kind"] == "item" else 0.8)
         except Exception as exc:
-            failures.append((stage_id, str(exc)))
+            failures[stage_id] = str(exc)
             print(f"  FAILED: {exc}", flush=True)
 
     CREDITS.write_text(json.dumps(credits, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    present = [card["stage_id"] for card in cards if (OUT / f"attraction_{card['stage_id']}.webp").exists()]
+    report = {
+        "expected": len(cards),
+        "bundled": len(present),
+        "newly_bundled": newly_bundled,
+        "missing": [card["stage_id"] for card in cards if card["stage_id"] not in present],
+        "failures": failures,
+    }
+    REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
 
+    total_bytes = sum((OUT / f"attraction_{stage}.webp").stat().st_size for stage in present)
+    print(f"\nBundled {len(present)}/{len(cards)} photos ({total_bytes / 1024 / 1024:.1f} MiB).")
     if failures:
-        print("\nFailures:")
-        for stage_id, reason in failures:
-            print(f"- {stage_id}: {reason}")
-        print(f"Bundled {len(credits)}/{len(cards)} photos.")
-        return 2
-
-    total_bytes = sum((OUT / f"attraction_{card['stage_id']}.webp").stat().st_size for card in cards)
-    print(f"\nBundled {len(credits)} attraction photos; total WebP size: {total_bytes / 1024 / 1024:.1f} MiB")
+        print("Missing cards can be filled by a later incremental run; successful images are kept.")
     return 0
 
 
