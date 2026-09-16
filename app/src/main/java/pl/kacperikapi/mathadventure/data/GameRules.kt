@@ -34,7 +34,7 @@ object GameRules {
         "en" -> "You got $correct/$total. ${requirement(language)} The next stage is still locked."
         "de" -> "Du hast $correct/$total richtig. ${requirement(language)} Die nächste Etappe bleibt gesperrt."
         "es" -> "Has acertado $correct/$total. ${requirement(language)} La siguiente etapa sigue bloqueada."
-        "it" -> "Hai risposto correttamente a $correct/$total. ${requirement(language)} La tappa successiva resta sbloccata."
+        "it" -> "Hai risposto correttamente a $correct/$total. ${requirement(language)} La tappa successiva resta bloccata."
         "sk" -> "Máš $correct/$total správne. ${requirement(language)} Ďalšia etapa zostáva zamknutá."
         else -> "Masz $correct/$total poprawnych odpowiedzi. ${requirement(language)} Kolejny etap pozostaje zablokowany."
     }
