@@ -35,6 +35,55 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Patch v0.5.3 compile regressions
+        if: steps.gate.outputs.run_bundle == 'true'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          extras_path = "app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/AdventureExtras.kt"
+          extras = Path(extras_path).read_text(encoding="utf-8")
+          main_extras = subprocess.check_output(
+              ["git", "show", f"origin/main:{extras_path}"], text=True
+          )
+
+          duplicate_marker = "@Composable\nfun RewardsScreen("
+          settings_marker = "@Composable\nfun SettingsScreen("
+          if duplicate_marker not in extras:
+              raise SystemExit("Duplicate RewardsScreen marker not found")
+          if settings_marker not in main_extras:
+              raise SystemExit("SettingsScreen marker not found on main")
+
+          # Keep the v0.5.3 Story/Passport/Daily screens, but restore the proven
+          # Settings screen from main and remove duplicate Rewards/Parent screens.
+          extras = extras[:extras.index(duplicate_marker)] + main_extras[main_extras.index(settings_marker):]
+          Path(extras_path).write_text(extras, encoding="utf-8")
+
+          world_path = "app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/WorldSelectScreen.kt"
+          world = Path(world_path).read_text(encoding="utf-8")
+          old = '''private fun WorldGrid(
+              progress: GameProgress,
+              premiumUnlocked: Boolean,
+              activeProfileName: String,
+              onProfile: () -> Unit,
+              onWorld: (Int) -> Unit,
+              onPremium: () -> Unit,
+              modifier: Modifier = Modifier
+          )'''
+          new = '''private fun WorldGrid(
+              progress: GameProgress,
+              premiumUnlocked: Boolean,
+              onWorld: (Int) -> Unit,
+              onPremium: () -> Unit,
+              modifier: Modifier = Modifier
+          )'''
+          if old not in world:
+              raise SystemExit("WorldGrid broken signature not found")
+          Path(world_path).write_text(world.replace(old, new, 1), encoding="utf-8")
+          PY
+
       - name: Install image tooling
         if: steps.gate.outputs.run_bundle == 'true'
         run: python -m pip install --disable-pip-version-check pillow
@@ -60,16 +109,18 @@ jobs:
           chmod +x gradlew
           ./gradlew testDebugUnitTest assembleDebug
 
-      - name: Commit bundled photos
+      - name: Commit fixed foundation and bundled photos
         if: steps.gate.outputs.run_bundle == 'true'
         shell: bash
         run: |
           rm -f .bundle_photos_v2_pending
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/src/main/res/drawable-nodpi/attraction_*.webp \
+          git add app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/AdventureExtras.kt \
+                  app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/WorldSelectScreen.kt \
+                  app/src/main/res/drawable-nodpi/attraction_*.webp \
                   app/src/main/assets/attraction_photo_credits.json \
                   app/src/main/assets/attraction_photo_bundle_report.json \
                   .bundle_photos_v2_pending
-          git commit -m "Bundle attraction photos for offline play"
+          git commit -m "Fix v0.5.3 foundation and bundle attraction photos"
           git push origin HEAD:foundation-v0.5.3
