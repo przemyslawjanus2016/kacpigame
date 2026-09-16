@@ -1,5 +1,6 @@
 package pl.kacperikapi.mathadventure.ui.components
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import android.text.Html
 import androidx.annotation.DrawableRes
@@ -31,14 +32,15 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 /**
- * Loads a real Wikimedia Commons image and stores it in app-private cache.
+ * Attraction photo renderer.
  *
- * For the first 30 cards we use a curated exact file name. Remaining cards can use
- * a precise Commons search query; in that mode the API also returns author/licence
- * attribution which is shown in the mission card.
+ * v0.5.3 prefers a bundled drawable named attraction_<stageId> so normal gameplay
+ * works instantly and fully offline. The old Wikimedia/cache path remains only as a
+ * safety fallback for a card whose bundled image has not been prepared yet.
  */
 @Composable
 fun WikimediaPhoto(
+    stageId: String,
     fileName: String,
     contentDescription: String,
     @DrawableRes fallbackRes: Int?,
@@ -47,10 +49,19 @@ fun WikimediaPhoto(
     onAttribution: (CommonsPhotoAttribution?) -> Unit = {}
 ) {
     val context = LocalContext.current
-    var image by remember(fileName, searchQuery) { mutableStateOf<ImageBitmap?>(null) }
-    var finished by remember(fileName, searchQuery) { mutableStateOf(false) }
+    val localResId = remember(stageId) {
+        context.resources.getIdentifier("attraction_$stageId", "drawable", context.packageName)
+    }
+    var image by remember(stageId, fileName, searchQuery) { mutableStateOf<ImageBitmap?>(null) }
+    var finished by remember(stageId, fileName, searchQuery) { mutableStateOf(localResId != 0) }
 
-    LaunchedEffect(fileName, searchQuery) {
+    LaunchedEffect(stageId, localResId, fileName, searchQuery) {
+        if (localResId != 0) {
+            onAttribution(readBundledAttribution(context, stageId))
+            finished = true
+            return@LaunchedEffect
+        }
+
         val loaded = withContext(Dispatchers.IO) {
             loadAndCacheCommonsPhoto(context.filesDir, fileName, searchQuery)
         }
@@ -74,16 +85,25 @@ fun WikimediaPhoto(
             )
         }
 
-        image?.let {
+        if (localResId != 0) {
             Image(
-                bitmap = it,
+                painter = painterResource(localResId),
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()
             )
+        } else {
+            image?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
+                )
+            }
         }
 
-        if (!finished && image == null) {
+        if (!finished && localResId == 0 && image == null) {
             Box(
                 Modifier
                     .matchParentSize()
@@ -105,6 +125,16 @@ private data class ResolvedCommonsImage(
     val imageUrl: String,
     val attribution: CommonsPhotoAttribution
 )
+
+private fun readBundledAttribution(context: Context, stageId: String): CommonsPhotoAttribution? = runCatching {
+    val payload = context.assets.open("attraction_photo_credits.json").bufferedReader().use { it.readText() }
+    val item = JSONObject(payload).optJSONObject(stageId) ?: return@runCatching null
+    CommonsPhotoAttribution(
+        author = item.optString("author", "Open-licensed photo contributor"),
+        license = item.optString("license", "see source"),
+        sourcePage = item.optString("source", "")
+    )
+}.getOrNull()
 
 private fun loadAndCacheCommonsPhoto(filesDir: File, fileName: String, searchQuery: String?): LoadedCommonsPhoto? {
     return runCatching {
@@ -137,7 +167,7 @@ private fun loadAndCacheCommonsPhoto(filesDir: File, fileName: String, searchQue
                 useCaches = true
                 setRequestProperty(
                     "User-Agent",
-                    "KacperKapiEducationalAdventure/0.4.0 (Android educational app; Wikimedia Commons image cache)"
+                    "KacperKapiTheGame/0.5.3 (Android educational app; attraction image cache)"
                 )
             }
 
@@ -178,7 +208,7 @@ private fun resolveCommonsSearch(searchQuery: String): ResolvedCommonsImage? {
         connectTimeout = 10_000
         readTimeout = 15_000
         setRequestProperty("Accept", "application/json")
-        setRequestProperty("User-Agent", "KacperKapiEducationalAdventure/0.4.0")
+        setRequestProperty("User-Agent", "KacperKapiTheGame/0.5.3")
     }
     return try {
         if (connection.responseCode !in 200..299) return null
