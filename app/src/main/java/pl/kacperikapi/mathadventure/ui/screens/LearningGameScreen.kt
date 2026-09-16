@@ -29,7 +29,6 @@ import pl.kacperikapi.mathadventure.R
 import pl.kacperikapi.mathadventure.data.*
 import pl.kacperikapi.mathadventure.ui.components.ParchmentCard
 import pl.kacperikapi.mathadventure.ui.theme.*
-import java.util.Locale
 
 @Composable
 fun LearningGameScreen(
@@ -42,8 +41,8 @@ fun LearningGameScreen(
     onRoundFinished: (RoundResult) -> Unit
 ) {
     val context = LocalContext.current
-    val language = LocalConfiguration.current.locales[0].language
-    val engine = remember { QuestionEngine(QuestionHistoryStore(context)) }
+    val language = AppLanguages.normalize(LocalConfiguration.current.locales[0].language)
+    val engine = remember(language) { LocalizedQuestionEngine(QuestionHistoryStore(context), language) }
     val tone = remember { ToneGenerator(AudioManager.STREAM_MUSIC, 45) }
     var ttsReady by remember { mutableStateOf(false) }
     val tts = remember {
@@ -58,21 +57,20 @@ fun LearningGameScreen(
         }
     }
 
-    var questionIndex by remember(stage.id, fixedCategory) { mutableIntStateOf(0) }
-    var correctCount by remember(stage.id, fixedCategory) { mutableIntStateOf(0) }
-    var hearts by remember(stage.id, fixedCategory) { mutableIntStateOf(3) }
-    var question by remember(stage.id, fixedCategory) { mutableStateOf(engine.next(stage, fixedCategory, performance)) }
+    var questionIndex by remember(stage.id, fixedCategory, language) { mutableIntStateOf(0) }
+    var correctCount by remember(stage.id, fixedCategory, language) { mutableIntStateOf(0) }
+    var hearts by remember(stage.id, fixedCategory, language) { mutableIntStateOf(3) }
+    var question by remember(stage.id, fixedCategory, language) { mutableStateOf(engine.next(stage, fixedCategory, performance)) }
     var answered by remember(question.id) { mutableStateOf(false) }
     var wasCorrect by remember(question.id) { mutableStateOf(false) }
-    var finished by remember(stage.id, fixedCategory) { mutableStateOf(false) }
-    var localStats by remember(stage.id, fixedCategory) { mutableStateOf(emptyMap<LearningCategory, CategoryStats>()) }
-    val total = 7
+    var finished by remember(stage.id, fixedCategory, language) { mutableStateOf(false) }
+    var localStats by remember(stage.id, fixedCategory, language) { mutableStateOf(emptyMap<LearningCategory, CategoryStats>()) }
+    val total = GameRules.QUESTIONS_PER_ROUND
 
     fun speakPrompt() {
         if (!narratorEnabled || !ttsReady) return
-        val locale = if (language == "en") Locale.ENGLISH else Locale("pl", "PL")
         runCatching {
-            tts.language = locale
+            tts.language = AppLanguages.profile(language).ttsLocale
             tts.speak(question.prompt(language), TextToSpeech.QUEUE_FLUSH, null, "question-${question.id}")
         }
     }
@@ -203,7 +201,7 @@ private fun QuestionCard(
     modifier: Modifier = Modifier
 ) {
     ParchmentCard(modifier.fillMaxWidth()) {
-        Text("${categoryIcon(question.category)} ${categoryLabel(question.category)}", color = AdventureGreen, fontWeight = FontWeight.Bold)
+        Text("${categoryIcon(question.category, language)} ${categoryLabel(question.category)}", color = AdventureGreen, fontWeight = FontWeight.Bold)
         if (question.type != QuestionType.MEMORY) {
             question.visual?.let {
                 Text(it, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 45.sp)
@@ -380,9 +378,9 @@ private fun categoryLabel(category: LearningCategory): String = stringResource(
     }
 )
 
-private fun categoryIcon(category: LearningCategory): String = when (category) {
+private fun categoryIcon(category: LearningCategory, language: String): String = when (category) {
     LearningCategory.MATH -> "➕"
-    LearningCategory.POLISH -> "🇵🇱"
+    LearningCategory.POLISH -> AppLanguages.profile(language).countryFlag
     LearningCategory.ENGLISH -> "🇬🇧"
     LearningCategory.LOGIC -> "🧠"
     LearningCategory.NATURE -> "🌿"
