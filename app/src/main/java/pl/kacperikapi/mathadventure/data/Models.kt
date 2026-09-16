@@ -156,6 +156,7 @@ data class RoundResult(
 )
 
 data class GameProgress(
+    val schemaVersion: Int = 2,
     val coins: Int = 0,
     val stars: Int = 0,
     val unlockedWorldId: Int = 1,
@@ -173,10 +174,12 @@ data class GameProgress(
     val accuracyPercent: Int
         get() = if (solvedTasks == 0) 0 else correctTasks * 100 / solvedTasks
 
-    fun maxStage(worldId: Int): Int = maxStageByWorld[worldId] ?: if (worldId == 1) 1 else 0
+    fun maxStage(worldId: Int): Int = maxStageByWorld[worldId] ?: if (worldId == GameContent.worlds.firstOrNull()?.id) 1 else 0
+
+    fun stageCount(worldId: Int): Int = GameContent.worlds.firstOrNull { it.id == worldId }?.stages?.size ?: 0
 
     fun availableMaxStage(worldId: Int): Int =
-        if (DevOptions.UNLOCK_ALL_CONTENT) GameRules.STAGES_PER_WORLD else maxStage(worldId)
+        if (DevOptions.UNLOCK_ALL_CONTENT) stageCount(worldId) else maxStage(worldId).coerceAtMost(stageCount(worldId))
 
     fun isWorldUnlocked(worldId: Int): Boolean =
         DevOptions.UNLOCK_ALL_CONTENT || worldId <= unlockedWorldId
