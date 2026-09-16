@@ -2,17 +2,24 @@ package pl.kacperikapi.mathadventure.data
 
 /** Central progression and age-difficulty rules for the adventure campaign. */
 object GameRules {
-    const val STAGES_PER_WORLD = 7
     const val QUESTIONS_PER_ROUND = 7
-    const val PASSING_CORRECT = 5
+    const val PASSING_CORRECT = 6
     const val MIN_AGE = 4
     const val MAX_AGE = 8
 
-    /** Seven smooth difficulty steps covering ages 4–8. */
-    private val stageAgeTargets = listOf(4, 4, 5, 6, 7, 8, 8)
+    /**
+     * Difficulty is no longer limited to seven stages. Content may override targetAge per Stage;
+     * this function is only a sensible default for newly added missions.
+     */
+    fun targetAge(stageNumber: Int): Int = when (stageNumber.coerceAtLeast(1)) {
+        1, 2 -> 4
+        3, 4 -> 5
+        5, 6 -> 6
+        7, 8 -> 7
+        else -> 8
+    }
 
-    fun targetAge(stageNumber: Int): Int =
-        stageAgeTargets[(stageNumber - 1).coerceIn(0, stageAgeTargets.lastIndex)]
+    fun stageCount(worldId: Int): Int = GameContent.world(worldId).stages.size
 
     fun requirement(language: String): String = when (AppLanguages.normalize(language)) {
         "en" -> "To unlock the next stage, get at least $PASSING_CORRECT correct answers out of $QUESTIONS_PER_ROUND."
@@ -27,7 +34,7 @@ object GameRules {
         "en" -> "You got $correct/$total. ${requirement(language)} The next stage is still locked."
         "de" -> "Du hast $correct/$total richtig. ${requirement(language)} Die nächste Etappe bleibt gesperrt."
         "es" -> "Has acertado $correct/$total. ${requirement(language)} La siguiente etapa sigue bloqueada."
-        "it" -> "Hai risposto correttamente a $correct/$total. ${requirement(language)} La tappa successiva resta bloccata."
+        "it" -> "Hai risposto correttamente a $correct/$total. ${requirement(language)} La tappa successiva resta sbloccata."
         "sk" -> "Máš $correct/$total správne. ${requirement(language)} Ďalšia etapa zostáva zamknutá."
         else -> "Masz $correct/$total poprawnych odpowiedzi. ${requirement(language)} Kolejny etap pozostaje zablokowany."
     }
