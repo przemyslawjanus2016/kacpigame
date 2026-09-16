@@ -1,5 +1,6 @@
 package pl.kacperikapi.mathadventure
 
+import android.app.Activity
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.ViewGroup
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import pl.kacperikapi.mathadventure.billing.PremiumBillingManager
 import pl.kacperikapi.mathadventure.data.*
 import pl.kacperikapi.mathadventure.ui.screens.*
 import pl.kacperikapi.mathadventure.ui.theme.*
@@ -37,6 +39,7 @@ import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private lateinit var store: ProgressStore
+    private lateinit var billingManager: PremiumBillingManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,13 +58,24 @@ class MainActivity : ComponentActivity() {
         }
 
         store = ProgressStore(this)
+        billingManager = PremiumBillingManager(this)
         applyLanguageSafely(store.loadLanguage())
 
         setContent {
             KacperKapiTheme {
-                GameApp(store = store, onLanguageChanged = { recreate() })
+                GameApp(
+                    store = store,
+                    billingManager = billingManager,
+                    activity = this@MainActivity,
+                    onLanguageChanged = { recreate() }
+                )
             }
         }
+    }
+
+    override fun onDestroy() {
+        if (::billingManager.isInitialized) billingManager.close()
+        super.onDestroy()
     }
 
     @Suppress("DEPRECATION")
@@ -120,10 +134,16 @@ private sealed interface Screen {
     data object Rewards : Screen
     data object Parent : Screen
     data object Settings : Screen
+    data object Premium : Screen
 }
 
 @Composable
-private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
+private fun GameApp(
+    store: ProgressStore,
+    billingManager: PremiumBillingManager,
+    activity: Activity,
+    onLanguageChanged: () -> Unit
+) {
     var screen by remember { mutableStateOf<Screen>(Screen.Splash) }
     var progress by remember { mutableStateOf(store.load()) }
     var narratorEnabled by remember { mutableStateOf(store.loadNarratorEnabled()) }
@@ -132,6 +152,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
     var selectedStages by remember {
         mutableStateOf(GameContent.worlds.associate { it.id to progress.availableMaxStage(it.id).coerceAtLeast(1) })
     }
+    val billingState by billingManager.state.collectAsState()
 
     fun persist(newProgress: GameProgress) {
         progress = newProgress
@@ -157,16 +178,45 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
             Screen.Rewards -> Screen.Worlds
             Screen.Parent -> Screen.Worlds
             Screen.Settings -> Screen.Worlds
+            Screen.Premium -> Screen.Worlds
         }
+    }
+
+    val blockedWorldId = when (val current = screen) {
+        is Screen.Map -> current.worldId
+        is Screen.Story -> current.worldId
+        is Screen.Categories -> current.worldId
+        is Screen.Game -> if (current.daily) null else current.worldId
+        else -> null
+    }
+    if (blockedWorldId != null && PremiumAccess.shouldShowPaywall(blockedWorldId, billingState.premiumUnlocked)) {
+        PremiumUnlockScreen(
+            state = billingState,
+            onBuy = { billingManager.launchPurchase(activity) },
+            onRestore = { billingManager.restorePurchases() },
+            onBack = { screen = Screen.Worlds }
+        )
+        return
     }
 
     when (val current = screen) {
         Screen.Splash -> SplashScreen { screen = Screen.Worlds }
         Screen.Worlds -> WorldSelectScreen(
             progress = progress,
-            onWorld = { screen = Screen.Map(it) },
+            premiumUnlocked = billingState.premiumUnlocked,
+            onWorld = { worldId ->
+                when {
+                    PremiumAccess.shouldShowPaywall(worldId, billingState.premiumUnlocked) -> screen = Screen.Premium
+                    PremiumAccess.canOpenWorld(worldId, progress.isWorldUnlocked(worldId), billingState.premiumUnlocked) -> screen = Screen.Map(worldId)
+                }
+            },
+            onPremium = { screen = Screen.Premium },
             onPractice = {
-                val worldId = progress.unlockedWorldId.coerceIn(1, GameContent.worlds.size)
+                val worldId = if (billingState.premiumUnlocked || DevOptions.UNLOCK_ALL_CONTENT) {
+                    progress.unlockedWorldId.coerceIn(1, GameContent.worlds.size)
+                } else {
+                    PremiumAccess.FREE_WORLD_ID
+                }
                 val stage = progress.maxStage(worldId).coerceIn(1, GameRules.STAGES_PER_WORLD)
                 screen = Screen.Categories(worldId, stage)
             },
@@ -211,7 +261,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
             onBack = { screen = Screen.Map(current.worldId) }
         )
         is Screen.Game -> {
-            val stage = if (current.daily) dailyStage() else GameContent.stage(
+            val stage = if (current.daily) dailyStage(billingState.premiumUnlocked) else GameContent.stage(
                 current.worldId.coerceIn(1, GameContent.worlds.size),
                 current.stageNumber.coerceIn(1, GameRules.STAGES_PER_WORLD)
             )
@@ -307,7 +357,7 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
         Screen.DailyIntro -> DailyMissionIntroScreen(
             progress = progress,
             onStart = {
-                val stage = dailyStage()
+                val stage = dailyStage(billingState.premiumUnlocked)
                 screen = Screen.Game(stage.worldId, stage.number, null, daily = true)
             },
             onBack = { screen = Screen.Worlds }
@@ -337,12 +387,22 @@ private fun GameApp(store: ProgressStore, onLanguageChanged: () -> Unit) {
             },
             onBack = { screen = Screen.Worlds }
         )
+        Screen.Premium -> PremiumUnlockScreen(
+            state = billingState,
+            onBuy = { billingManager.launchPurchase(activity) },
+            onRestore = { billingManager.restorePurchases() },
+            onBack = { screen = Screen.Worlds }
+        )
     }
 }
 
-private fun dailyStage(): Stage {
+private fun dailyStage(premiumUnlocked: Boolean): Stage {
     val today = LocalDate.now()
-    val worldId = ((today.dayOfYear - 1) % GameContent.worlds.size) + 1
+    val worldId = if (premiumUnlocked || DevOptions.UNLOCK_ALL_CONTENT) {
+        ((today.dayOfYear - 1) % GameContent.worlds.size) + 1
+    } else {
+        PremiumAccess.FREE_WORLD_ID
+    }
     val stageNumber = ((today.dayOfMonth - 1) % GameRules.STAGES_PER_WORLD) + 1
     return Stage(
         id = "daily-${today}",
