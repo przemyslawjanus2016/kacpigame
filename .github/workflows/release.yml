@@ -95,5 +95,5 @@ jobs:
             "dist/KacperKapi-${RELEASE_TAG}.apk" \
             --repo "$RELEASE_REPO" \
             --target main \
-            --title "Kacper i Kapi $RELEASE_TAG" \
+            --title "Kacper & Kapi: The Game $RELEASE_TAG" \
             --generate-notes
