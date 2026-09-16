@@ -1,0 +1,164 @@
+name: Apply v0.5.3 foundation patches once
+
+on:
+  push:
+    branches:
+      - foundation-v0.5.3
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: foundation-v0.5.3
+          fetch-depth: 0
+
+      - name: Apply patches
+        shell: bash
+        run: |
+          test -f .foundation_v053_pending || exit 0
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new, count=None):
+              p = Path(path)
+              s = p.read_text(encoding='utf-8')
+              if old not in s:
+                  raise SystemExit(f'Expected text not found in {path}: {old[:120]!r}')
+              s = s.replace(old, new) if count is None else s.replace(old, new, count)
+              p.write_text(s, encoding='utf-8')
+
+          # Enable all currently defined stages (10 per current world) without a global stage-count cap.
+          replace(
+              'app/src/main/java/pl/kacperikapi/mathadventure/data/GameContent.kt',
+              '        names.take(GameRules.STAGES_PER_WORLD).mapIndexed { index, pair ->',
+              '        names.mapIndexed { index, pair ->'
+          )
+
+          # World list: dynamic stage totals + visible profile switch.
+          path = 'app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/WorldSelectScreen.kt'
+          replace(path,
+              '    progress: GameProgress,\n    premiumUnlocked: Boolean,',
+              '    progress: GameProgress,\n    premiumUnlocked: Boolean,\n    activeProfileName: String,\n    onProfile: () -> Unit,'
+          )
+          replace(path,
+              '            GameTitle(compact = !tablet)\n            Spacer(Modifier.height(12.dp))',
+              '            GameTitle(compact = !tablet)\n            TextButton(\n                onClick = onProfile,\n                modifier = Modifier.align(Alignment.CenterHorizontally)\n            ) {\n                Text("👤 $activeProfileName  •  Zmień gracza", fontWeight = FontWeight.Black, color = AdventureGreen)\n            }\n            Spacer(Modifier.height(8.dp))'
+          )
+          replace(path,
+              '                        else -> stringResource(R.string.stage_progress, maxStage.coerceAtLeast(1), GameRules.STAGES_PER_WORLD)',
+              '                        else -> stringResource(R.string.stage_progress, maxStage.coerceAtLeast(1), world.stages.size)'
+          )
+          replace(path, 'import pl.kacperikapi.mathadventure.data.GameRules\n', '')
+
+          # Adventure map: display each world\'s own stage count.
+          path = 'app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/AdventureMapScreen.kt'
+          replace(path,
+              'import pl.kacperikapi.mathadventure.data.GameProgress\nimport pl.kacperikapi.mathadventure.data.GameRules',
+              'import pl.kacperikapi.mathadventure.data.GameContent\nimport pl.kacperikapi.mathadventure.data.GameProgress\nimport pl.kacperikapi.mathadventure.data.GameRules'
+          )
+          replace(path,
+              '                "Finish stage ${GameRules.STAGES_PER_WORLD} in the previous world first."\n            else\n                "Najpierw ukończ etap ${GameRules.STAGES_PER_WORLD} w poprzednim świecie."',
+              '                "Finish the previous world first."\n            else\n                "Najpierw ukończ poprzedni świat."'
+          )
+          replace(path,
+              '                    MissionPanel(stage, language, onPlay, onPractice, Modifier.weight(.7f))',
+              '                    MissionPanel(stage, world.stages.size, language, onPlay, onPractice, Modifier.weight(.7f))'
+          )
+          replace(path,
+              '                MissionPanel(stage, language, onPlay, onPractice)',
+              '                MissionPanel(stage, world.stages.size, language, onPlay, onPractice)'
+          )
+          replace(path,
+              'private fun MissionPanel(stage: Stage, language: String, onPlay: () -> Unit, onPractice: () -> Unit, modifier: Modifier = Modifier) {',
+              'private fun MissionPanel(stage: Stage, totalStages: Int, language: String, onPlay: () -> Unit, onPractice: () -> Unit, modifier: Modifier = Modifier) {'
+          )
+          replace(path,
+              '                    "Stage ${stage.number}/${GameRules.STAGES_PER_WORLD} • difficulty around age ${stage.targetAge}"\n                else\n                    "Etap ${stage.number}/${GameRules.STAGES_PER_WORLD} • poziom ok. ${stage.targetAge} lat",',
+              '                    "Stage ${stage.number}/$totalStages • difficulty around age ${stage.targetAge}"\n                else\n                    "Etap ${stage.number}/$totalStages • poziom ok. ${stage.targetAge} lat",'
+          )
+
+          # Story screen: dynamic stage total and no claim that downloading is required.
+          path = 'app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/AdventureExtras.kt'
+          replace(path,
+              '                        "${world.icon} ${stage.number}/${GameRules.STAGES_PER_WORLD}",',
+              '                        "${world.icon} ${stage.number}/${world.stages.size}",'
+          )
+          replace(path,
+              '            "en" -> "The real photo is downloaded on first view and then kept on the device for offline viewing."\n            "de" -> "Das echte Foto wird beim ersten Anzeigen geladen und danach für die Offline-Nutzung auf dem Gerät gespeichert."\n            "es" -> "La foto real se descarga al verla por primera vez y queda guardada para verla sin conexión."\n            "it" -> "La foto reale viene scaricata alla prima apertura e resta sul dispositivo per la visualizzazione offline."\n            "sk" -> "Skutočná fotografia sa stiahne pri prvom zobrazení a potom zostane v zariadení na použitie offline."\n            else -> "Prawdziwe zdjęcie jest pobierane przy pierwszym otwarciu tej karty, a potem zostaje na urządzeniu do oglądania offline."',
+              '            "en" -> "Attraction photos are prepared for offline use; when a bundled photo is unavailable, the app can still use its saved copy."\n            "de" -> "Attraktionsfotos sind für die Offline-Nutzung vorbereitet; falls ein eingebettetes Foto fehlt, kann die App weiterhin die gespeicherte Kopie verwenden."\n            "es" -> "Las fotos de las atracciones están preparadas para usarse sin conexión; si falta una foto integrada, la app puede usar su copia guardada."\n            "it" -> "Le foto delle attrazioni sono preparate per l’uso offline; se manca una foto integrata, l’app può usare la copia salvata."\n            "sk" -> "Fotografie atrakcií sú pripravené na použitie offline; ak vložená fotografia chýba, aplikácia môže použiť uloženú kópiu."\n            else -> "Zdjęcia atrakcji są przygotowane do działania offline; jeśli nie ma jeszcze wersji wbudowanej, aplikacja może użyć zapisanej kopii."'
+          )
+
+          # Main navigation: profile selection after splash, profile switching, and dynamic stage totals.
+          path = 'app/src/main/java/pl/kacperikapi/mathadventure/MainActivity.kt'
+          replace(path,
+              '    data object Splash : Screen\n    data object Worlds : Screen',
+              '    data object Splash : Screen\n    data object Profiles : Screen\n    data object Worlds : Screen'
+          )
+          replace(path,
+              '    var screen by remember { mutableStateOf<Screen>(Screen.Splash) }\n    var progress by remember { mutableStateOf(store.load()) }',
+              '    var screen by remember { mutableStateOf<Screen>(Screen.Splash) }\n    var profiles by remember { mutableStateOf(store.profiles()) }\n    var progress by remember { mutableStateOf(store.load()) }'
+          )
+          replace(path,
+              '    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash) {',
+              '    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && !(screen == Screen.Profiles && store.activeProfile() == null)) {'
+          )
+          replace(path,
+              '            Screen.Splash -> Screen.Worlds\n            Screen.Worlds -> Screen.Worlds',
+              '            Screen.Splash -> Screen.Profiles\n            Screen.Profiles -> Screen.Worlds\n            Screen.Worlds -> Screen.Worlds'
+          )
+          replace(path,
+              '        Screen.Splash -> SplashScreen { screen = Screen.Worlds }\n        Screen.Worlds -> WorldSelectScreen(',
+              '''        Screen.Splash -> SplashScreen { screen = Screen.Profiles }\n        Screen.Profiles -> ProfileSelectScreen(\n            profiles = profiles,\n            activeProfileId = store.activeProfileId(),\n            onSelect = { profile ->\n                store.selectProfile(profile.id)\n                progress = store.load()\n                selectedStages = GameContent.worlds.associate { it.id to progress.availableMaxStage(it.id).coerceAtLeast(1) }\n                progressionNotice = null\n                screen = Screen.Worlds\n            },\n            onAdd = { name ->\n                store.addProfile(name)\n                profiles = store.profiles()\n                progress = store.load()\n                selectedStages = GameContent.worlds.associate { it.id to 1 }\n                progressionNotice = null\n                screen = Screen.Worlds\n            },\n            onBack = if (store.activeProfile() != null) ({ screen = Screen.Worlds }) else null\n        )\n        Screen.Worlds -> WorldSelectScreen('''
+          )
+          replace(path,
+              '            progress = progress,\n            premiumUnlocked = billingState.premiumUnlocked,',
+              '            progress = progress,\n            premiumUnlocked = billingState.premiumUnlocked,\n            activeProfileName = store.activeProfile()?.name ?: "Gracz",\n            onProfile = { profiles = store.profiles(); screen = Screen.Profiles },'
+          )
+          replace(path,
+              '                val stage = progress.maxStage(worldId).coerceIn(1, GameRules.STAGES_PER_WORLD)\n                screen = Screen.Categories(worldId, stage)',
+              '                val world = GameContent.world(worldId)\n                val stage = progress.maxStage(worldId).coerceIn(1, world.stages.size)\n                screen = Screen.Categories(worldId, stage)'
+          )
+          replace(path,
+              '            val maxStage = progress.availableMaxStage(safeWorldId).coerceIn(1, GameRules.STAGES_PER_WORLD)',
+              '            val maxStage = progress.availableMaxStage(safeWorldId).coerceIn(1, world.stages.size)'
+          )
+          replace(path,
+              '''            val stage = if (current.daily) dailyStage(billingState.premiumUnlocked) else GameContent.stage(\n                current.worldId.coerceIn(1, GameContent.worlds.size),\n                current.stageNumber.coerceIn(1, GameRules.STAGES_PER_WORLD)\n            )''',
+              '''            val stage = if (current.daily) {\n                dailyStage(billingState.premiumUnlocked)\n            } else {\n                val safeWorld = GameContent.world(current.worldId.coerceIn(1, GameContent.worlds.size))\n                GameContent.stage(safeWorld.id, current.stageNumber.coerceIn(1, safeWorld.stages.size))\n            }'''
+          )
+          replace(path,
+              '                            if (stage.number < GameRules.STAGES_PER_WORLD) {',
+              '                            if (stage.number < GameContent.world(stage.worldId).stages.size) {'
+          )
+          replace(path,
+              '    val stageNumber = ((today.dayOfMonth - 1) % GameRules.STAGES_PER_WORLD) + 1',
+              '    val stageCount = GameContent.world(worldId).stages.size\n    val stageNumber = ((today.dayOfMonth - 1) % stageCount) + 1'
+          )
+          replace(path,
+              '            Text(stringResource(R.string.seven_worlds_one_adventure), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)',
+              '            Text("${GameContent.worlds.size} światów • kolejne przygody będą dochodzić w aktualizacjach", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = androidx.compose.ui.graphics.Color.White, textAlign = TextAlign.Center)'
+          )
+
+          # Version.
+          replace('app/build.gradle.kts', 'versionCode = 20', 'versionCode = 21')
+          replace('app/build.gradle.kts', 'versionName = "0.5.2"', 'versionName = "0.5.3"')
+          Path('VERSION.txt').write_text('0.5.3\n', encoding='utf-8')
+
+          Path('.foundation_v053_pending').unlink()
+          PY
+
+      - name: Commit patches
+        shell: bash
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Apply v0.5.3 foundation patches"
+          git push origin HEAD:foundation-v0.5.3
