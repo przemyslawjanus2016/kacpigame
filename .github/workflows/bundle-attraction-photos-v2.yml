@@ -35,7 +35,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Patch v0.5.3 compile regressions
+      - name: Patch v0.5.3 foundation and onboarding
         if: steps.gate.outputs.run_bundle == 'true'
         shell: bash
         run: |
@@ -51,15 +51,11 @@ jobs:
 
           duplicate_marker = "@Composable\nfun RewardsScreen("
           settings_marker = "@Composable\nfun SettingsScreen("
-          if duplicate_marker not in extras:
-              raise SystemExit("Duplicate RewardsScreen marker not found")
-          if settings_marker not in main_extras:
-              raise SystemExit("SettingsScreen marker not found on main")
-
-          # Keep the v0.5.3 Story/Passport/Daily screens, but restore the proven
-          # Settings screen from main and remove duplicate Rewards/Parent screens.
-          extras = extras[:extras.index(duplicate_marker)] + main_extras[main_extras.index(settings_marker):]
-          Path(extras_path).write_text(extras, encoding="utf-8")
+          if duplicate_marker in extras:
+              if settings_marker not in main_extras:
+                  raise SystemExit("SettingsScreen marker not found on main")
+              extras = extras[:extras.index(duplicate_marker)] + main_extras[main_extras.index(settings_marker):]
+              Path(extras_path).write_text(extras, encoding="utf-8")
 
           world_path = "app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/WorldSelectScreen.kt"
           world = Path(world_path).read_text(encoding="utf-8")
@@ -79,9 +75,49 @@ jobs:
               onPremium: () -> Unit,
               modifier: Modifier = Modifier
           )'''
-          if old not in world:
-              raise SystemExit("WorldGrid broken signature not found")
-          Path(world_path).write_text(world.replace(old, new, 1), encoding="utf-8")
+          if old in world:
+              world = world.replace(old, new, 1)
+              Path(world_path).write_text(world, encoding="utf-8")
+
+          main_path = "app/src/main/java/pl/kacperikapi/mathadventure/MainActivity.kt"
+          main = Path(main_path).read_text(encoding="utf-8")
+
+          replacements = [
+              (
+                  "    data object Splash : Screen\n    data object Profiles : Screen",
+                  "    data object Splash : Screen\n    data object Language : Screen\n    data object Profiles : Screen"
+              ),
+              (
+                  "BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && !(screen == Screen.Profiles && store.activeProfile() == null))",
+                  "BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && screen != Screen.Language && !(screen == Screen.Profiles && store.activeProfile() == null))"
+              ),
+              (
+                  "            Screen.Splash -> Screen.Profiles\n            Screen.Profiles -> Screen.Worlds",
+                  "            Screen.Splash -> Screen.Language\n            Screen.Language -> Screen.Language\n            Screen.Profiles -> Screen.Worlds"
+              ),
+              (
+                  "        Screen.Splash -> SplashScreen { screen = Screen.Profiles }\n        Screen.Profiles -> ProfileSelectScreen(",
+                  """        Screen.Splash -> SplashScreen {
+            screen = if (store.hasSavedLanguage()) Screen.Profiles else Screen.Language
+        }
+        Screen.Language -> LanguageSelectScreen(
+            suggestedLanguage = store.loadLanguage(),
+            onSelect = { tag ->
+                store.saveLanguage(tag)
+                onLanguageChanged()
+            }
+        )
+        Screen.Profiles -> ProfileSelectScreen("""
+              ),
+          ]
+
+          for old_text, new_text in replacements:
+              if old_text in main:
+                  main = main.replace(old_text, new_text, 1)
+              elif new_text not in main:
+                  raise SystemExit(f"MainActivity onboarding patch point not found: {old_text[:80]!r}")
+
+          Path(main_path).write_text(main, encoding="utf-8")
           PY
 
       - name: Install image tooling
@@ -116,11 +152,13 @@ jobs:
           rm -f .bundle_photos_v2_pending
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/AdventureExtras.kt \
+          git add app/src/main/java/pl/kacperikapi/mathadventure/MainActivity.kt \
+                  app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/AdventureExtras.kt \
                   app/src/main/java/pl/kacperikapi/mathadventure/ui/screens/WorldSelectScreen.kt \
                   app/src/main/res/drawable-nodpi/attraction_*.webp \
                   app/src/main/assets/attraction_photo_credits.json \
                   app/src/main/assets/attraction_photo_bundle_report.json \
                   .bundle_photos_v2_pending
-          git commit -m "Fix v0.5.3 foundation and bundle attraction photos"
+          git commit -m "Finish v0.5.3 onboarding and offline photos"
+          git pull --rebase origin foundation-v0.5.3
           git push origin HEAD:foundation-v0.5.3
