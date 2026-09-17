@@ -3,7 +3,6 @@ package pl.kacperikapi.mathadventure.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,7 +19,6 @@ import pl.kacperikapi.mathadventure.data.GameProgress
 import pl.kacperikapi.mathadventure.data.GameRules
 import pl.kacperikapi.mathadventure.data.Stage
 import pl.kacperikapi.mathadventure.data.WorldDefinition
-import pl.kacperikapi.mathadventure.ui.components.PrimaryGameButton
 import pl.kacperikapi.mathadventure.ui.components.StageRouteMap
 import pl.kacperikapi.mathadventure.ui.theme.*
 
@@ -37,22 +35,13 @@ fun AdventureMapScreen(
     onNoticeDismiss: () -> Unit = {}
 ) {
     val language = LocalConfiguration.current.locales[0].language
-    val stage = world.stages.first { it.number == selectedStage }
     var lockedStage by remember { mutableStateOf<Stage?>(null) }
 
     fun lockedMessage(item: Stage): String = when {
-        !progress.isWorldUnlocked(item.worldId) -> {
-            if (language == "en")
-                "Finish stage ${GameRules.STAGES_PER_WORLD} in the previous world first."
-            else
-                "Najpierw ukończ etap ${GameRules.STAGES_PER_WORLD} w poprzednim świecie."
-        }
-        item.number > 1 -> {
-            if (language == "en")
-                "Stage ${item.number} is locked. Finish stage ${item.number - 1}. ${GameRules.requirementEn()}"
-            else
-                "Etap ${item.number} jest zablokowany. Ukończ etap ${item.number - 1}. ${GameRules.requirementPl()}"
-        }
+        item.number > 1 -> if (language == "en")
+            "Stage ${item.number} is locked. Finish stage ${item.number - 1}. ${GameRules.requirementEn()}"
+        else
+            "Etap ${item.number} jest zablokowany. Ukończ etap ${item.number - 1}. ${GameRules.requirementPl()}"
         else -> if (language == "en") GameRules.requirementEn() else GameRules.requirementPl()
     }
 
@@ -91,54 +80,18 @@ fun AdventureMapScreen(
             Text("${world.icon} ${stringResource(world.nameRes)}", fontSize = if (tablet) 34.sp else 28.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
             Text(world.subtitle(language), color = WoodBrown, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(10.dp))
-            if (tablet) {
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    StageRouteMap(
-                        world = world,
-                        progress = progress,
-                        selectedStage = selectedStage,
-                        onSelect = onSelectStage,
-                        onLocked = { lockedStage = it },
-                        modifier = Modifier.weight(1.45f),
-                        height = 650.dp
-                    )
-                    MissionPanel(stage, language, onPlay, onPractice, Modifier.weight(.7f))
-                }
-            } else {
-                StageRouteMap(
-                    world = world,
-                    progress = progress,
-                    selectedStage = selectedStage,
-                    onSelect = onSelectStage,
-                    onLocked = { lockedStage = it },
-                    height = 620.dp
-                )
-                Spacer(Modifier.height(10.dp))
-                MissionPanel(stage, language, onPlay, onPractice)
-            }
-            Spacer(Modifier.height(20.dp))
-        }
-    }
-}
 
-@Composable
-private fun MissionPanel(stage: Stage, language: String, onPlay: () -> Unit, onPractice: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), color = Parchment, shadowElevation = 4.dp) {
-        Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(stringResource(R.string.current_mission), color = AdventureGreen, fontWeight = FontWeight.Bold)
-            Text(stage.name(language), fontSize = 23.sp, fontWeight = FontWeight.Black, color = Ink)
-            Text(
-                if (language == "en")
-                    "Stage ${stage.number}/${GameRules.STAGES_PER_WORLD} • difficulty around age ${stage.targetAge}"
-                else
-                    "Etap ${stage.number}/${GameRules.STAGES_PER_WORLD} • poziom ok. ${stage.targetAge} lat",
-                style = MaterialTheme.typography.bodySmall,
-                color = WoodBrown
+            // Atrakcja otwiera się wyłącznie po dotknięciu punktu na mapie.
+            // Nie pokazujemy już osobnego panelu atrakcji pod mapą ani obok niej.
+            StageRouteMap(
+                world = world,
+                progress = progress,
+                selectedStage = selectedStage,
+                onSelect = onSelectStage,
+                onLocked = { lockedStage = it },
+                height = if (tablet) 650.dp else 620.dp
             )
-            Text(stage.categories.joinToString(" • ") { it.name.lowercase() }, style = MaterialTheme.typography.bodySmall, color = WoodBrown)
-            Spacer(Modifier.height(12.dp))
-            PrimaryGameButton(if (language == "en") "Discover place" else "Poznaj miejsce", onPlay, Modifier.fillMaxWidth())
-            TextButton(onClick = onPractice) { Text("📚 ${stringResource(R.string.choose_category)}") }
+            Spacer(Modifier.height(20.dp))
         }
     }
 }
