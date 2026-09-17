@@ -63,9 +63,9 @@ class ProgressStore(context: Context) {
     private fun globalSafeBoolean(k:String,d:Boolean):Boolean=try{globalPrefs.getBoolean(k,d)}catch(_:ClassCastException){globalPrefs.edit().remove(k).apply();d}
     private fun globalSafeString(k:String,d:String?):String?=try{globalPrefs.getString(k,d)}catch(_:ClassCastException){globalPrefs.edit().remove(k).apply();d}
     private fun encodeIntMap(m:Map<Int,Int>)=m.entries.joinToString(";"){"${it.key}:${it.value}"}
-    private fun decodeIntMap(r:String?):Map<Int,Int>=r.orEmpty().split(';').mapNotNull{val p=it.split(':');if(p.size!=2)null else{val k=p[0].toIntOrNull();val v=p[1].toIntOrNull();if(k==null||v==null)null else k to v}}.toMap()
+    private fun decodeIntMap(r:String?): Map<Int,Int> = r.orEmpty().split(';').mapNotNull{val p=it.split(':');if(p.size!=2)null else{val k=p[0].toIntOrNull();val v=p[1].toIntOrNull();if(k==null||v==null)null else k to v}}.toMap()
     private fun encodeStringIntMap(m:Map<String,Int>)=m.entries.joinToString(";"){"${it.key}:${it.value}"}
-    private fun decodeStringIntMap(r:String?):Map<String,Int>=r.orEmpty().split(';').mapNotNull{val i=it.lastIndexOf(':');if(i<=0)null else{val k=it.substring(0,i);val v=it.substring(i+1).toIntOrNull();if(v==null)null else k to v}}.toMap()
-    private fun decodeIntSet(r:String?):Set<Int>=r.orEmpty().split(',').mapNotNull{it.toIntOrNull()}.toSet()
+    private fun decodeStringIntMap(r:String?): Map<String,Int> = r.orEmpty().split(';').mapNotNull{val i=it.lastIndexOf(':');if(i<=0)null else{val k=it.substring(0,i);val v=it.substring(i+1).toIntOrNull();if(v==null)null else k to v}}.toMap()
+    private fun decodeIntSet(r:String?): Set<Int> = r.orEmpty().split(',').mapNotNull{it.toIntOrNull()}.toSet()
     companion object{const val CURRENT_SCHEMA_VERSION=2;private const val INITIAL_LANGUAGE_CHOICE_KEY="initial_language_choice_v2"}
 }
