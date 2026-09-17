@@ -156,6 +156,7 @@ data class RoundResult(
 )
 
 data class GameProgress(
+    val schemaVersion: Int = 2,
     val coins: Int = 0,
     val stars: Int = 0,
     val unlockedWorldId: Int = 1,
