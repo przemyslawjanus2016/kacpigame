@@ -4,7 +4,7 @@ import kotlin.random.Random
 
 /**
  * Adds country/language specific content on top of the existing adaptive engine.
- * The base engine still chooses categories according to the child's progress.
+ * Questions are randomized and recently displayed IDs are avoided.
  */
 class LocalizedQuestionEngine(
     private val history: QuestionHistoryStore,
@@ -20,15 +20,21 @@ class LocalizedQuestionEngine(
         fixedCategory: LearningCategory? = null,
         performance: Map<LearningCategory, CategoryStats> = emptyMap()
     ): LearningQuestion {
-        val baseQuestion = base.next(stage, fixedCategory, performance)
+        val recent = history.recentIds()
 
-        // Polish keeps the mature existing bank and receives extra localized variants.
-        // Other languages use the locale-native generator for every question so no
-        // Polish text leaks into a German/Spanish/Italian/Slovak/English round.
+        // Polish alternates between the mature base bank and localized procedural variants.
+        // Other languages always use the locale-native generator.
         val useLocalized = languageTag != "pl" || (++localizedCounter % 2 == 0)
-        if (!useLocalized) return baseQuestion
+        if (!useLocalized) {
+            repeat(80) {
+                val candidate = normalizeVisual(base.next(stage, fixedCategory, performance))
+                if (candidate.id !in recent) return candidate
+            }
+            return normalizeVisual(base.next(stage, fixedCategory, performance))
+        }
 
-        val category = fixedCategory ?: baseQuestion.category
+        val probe = base.next(stage, fixedCategory, performance)
+        val category = fixedCategory ?: probe.category
         val stats = performance[category]
         val offset = when {
             stats == null || stats.solved < 8 -> 0
@@ -37,15 +43,26 @@ class LocalizedQuestionEngine(
             else -> 0
         }
         val age = (stage.targetAge + offset).coerceIn(GameRules.MIN_AGE, GameRules.MAX_AGE)
-        val recent = history.recentIds()
 
-        var fallback: LearningQuestion? = null
-        repeat(30) {
-            val candidate = LocalizedQuestionFactory.generate(category, stage, age, languageTag, random)
-            fallback = candidate
+        repeat(80) {
+            val candidate = normalizeVisual(LocalizedQuestionFactory.generate(category, stage, age, languageTag, random))
             if (candidate.id !in recent) return candidate
         }
-        return fallback ?: baseQuestion
+
+        // If a small category pool is temporarily exhausted, generate a fresh base variant
+        // instead of deliberately returning the last repeated localized question.
+        return normalizeVisual(base.next(stage, fixedCategory, performance))
+    }
+
+    /**
+     * The Unicode 🐾 glyph visually contains two paw prints. In counting exercises that
+     * made e.g. four symbols look like eight objects. Use a single-object dog symbol there.
+     */
+    private fun normalizeVisual(question: LearningQuestion): LearningQuestion {
+        if (!question.id.contains("math:count")) return question
+        val visual = question.visual ?: return question
+        if (!visual.contains("🐾")) return question
+        return question.copy(visual = visual.replace("🐾", "🐶"))
     }
 
     fun markSeen(question: LearningQuestion) {
