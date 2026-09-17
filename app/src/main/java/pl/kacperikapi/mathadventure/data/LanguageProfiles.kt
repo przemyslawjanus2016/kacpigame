@@ -30,8 +30,12 @@ object AppLanguages {
         return supported.firstOrNull { it.tag == short }?.tag ?: "pl"
     }
 
-    fun profile(tag: String?): LanguageProfile =
-        supported.first { it.tag == normalize(tag) }
+    fun detectDeviceLanguage(): String {
+        val device = Locale.getDefault().language
+        return supported.firstOrNull { it.tag == device }?.tag ?: "pl"
+    }
+
+    fun profile(tag: String?): LanguageProfile = supported.first { it.tag == normalize(tag) }
 
     fun next(tag: String?): String {
         val current = normalize(tag)
@@ -40,6 +44,5 @@ object AppLanguages {
     }
 
     fun label(tag: String?): String = profile(tag).shortLabel
-
     fun allLabels(): String = supported.joinToString(" • ") { it.shortLabel }
 }
