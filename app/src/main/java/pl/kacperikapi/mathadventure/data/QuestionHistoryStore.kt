@@ -2,15 +2,18 @@ package pl.kacperikapi.mathadventure.data
 
 import android.content.Context
 
-/** Keeps a persistent rolling list of displayed question IDs to avoid visible repetition. */
+/** Keeps a rolling list of recently displayed question IDs to avoid visible repetition
+ * while still allowing procedural generators to keep producing fresh random variants.
+ */
 class QuestionHistoryStore(context: Context) {
     private val prefs = context.getSharedPreferences("kacper_kapi_question_history", Context.MODE_PRIVATE)
-    private val maxRecent = 5000
+    private val maxRecent = 200
 
     fun recentIds(): Set<String> = prefs.getString("recent", "")
         .orEmpty()
         .split('|')
         .filter { it.isNotBlank() }
+        .takeLast(maxRecent)
         .toSet()
 
     fun remember(id: String) {
@@ -18,10 +21,10 @@ class QuestionHistoryStore(context: Context) {
             .orEmpty()
             .split('|')
             .filter { it.isNotBlank() && it != id }
+            .takeLast(maxRecent - 1)
             .toMutableList()
         current += id
-        val trimmed = current.takeLast(maxRecent)
-        prefs.edit().putString("recent", trimmed.joinToString("|")).apply()
+        prefs.edit().putString("recent", current.joinToString("|")).apply()
     }
 
     fun clear() {
