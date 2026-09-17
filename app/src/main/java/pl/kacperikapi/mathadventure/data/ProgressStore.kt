@@ -4,54 +4,78 @@ import android.content.Context
 
 class ProgressStore(context: Context) {
     private val appContext = context.applicationContext
-    private val prefs = appContext.getSharedPreferences("kacper_kapi_progress", Context.MODE_PRIVATE)
+    private val profileStore = PlayerProfileStore(appContext)
+    private val globalPrefs = appContext.getSharedPreferences(PlayerProfileStore.LEGACY_PROGRESS_PREFS, Context.MODE_PRIVATE)
 
-    fun load(): GameProgress = runCatching { loadInternal() }.getOrElse {
-        val language = loadLanguage()
-        val narrator = loadNarratorEnabled()
-        val sound = loadSoundEnabled()
-        prefs.edit().clear()
-            .putString("language", language)
-            .putBoolean("narrator", narrator)
-            .putBoolean("sound", sound)
-            .apply()
-        GameProgress()
+    fun profiles(): List<PlayerProfile> = profileStore.profiles()
+    fun activeProfile(): PlayerProfile? = profileStore.activeProfile()
+    fun activeProfileId(): String? = profileStore.activeProfileId()
+
+    fun addProfile(name: String): PlayerProfile = profileStore.add(name)
+
+    fun selectProfile(profileId: String) {
+        profileStore.select(profileId)
     }
 
-    private fun loadInternal(): GameProgress {
+    fun renameProfile(profileId: String, name: String) = profileStore.rename(profileId, name)
+    fun deleteProfile(profileId: String) = profileStore.delete(profileId)
+
+    private fun prefs() = activeProfileId()?.let {
+        appContext.getSharedPreferences(PlayerProfileStore.progressPrefsName(it), Context.MODE_PRIVATE)
+    }
+
+    fun load(): GameProgress {
+        val prefs = prefs() ?: return GameProgress()
+        return runCatching { loadInternal(prefs) }.getOrElse {
+            prefs.edit().clear().putInt("save_schema_version", CURRENT_SCHEMA_VERSION).apply()
+            GameProgress()
+        }
+    }
+
+    private fun loadInternal(prefs: android.content.SharedPreferences): GameProgress {
         val stats = LearningCategory.entries.associateWith { category ->
             val key = category.name.lowercase()
             CategoryStats(
-                solved = safeInt("solved_$key", 0),
-                correct = safeInt("correct_$key", 0)
+                solved = safeInt(prefs, "solved_$key", 0),
+                correct = safeInt(prefs, "correct_$key", 0)
             )
         }
-        val maxStage = decodeIntMap(safeString("max_stage_by_world", null))
+        val maxStage = decodeIntMap(safeString(prefs, "max_stage_by_world", null))
             .ifEmpty {
-                val old = safeInt("max_level", 1).coerceIn(1, 10)
+                val old = safeInt(prefs, "max_level", 1).coerceAtLeast(1)
                 mapOf(1 to old)
             }
+            .mapNotNull { (worldId, value) ->
+                GameContent.worlds.firstOrNull { it.id == worldId }?.let { world ->
+                    worldId to value.coerceIn(0, world.stages.size)
+                }
+            }.toMap()
+
+        val maxWorldId = GameContent.worlds.maxOfOrNull { it.id } ?: 1
         return GameProgress(
-            coins = safeInt("coins", 0).coerceAtLeast(0),
-            stars = safeInt("stars", 0).coerceAtLeast(0),
-            unlockedWorldId = safeInt("unlocked_world", 1).coerceIn(1, GameContent.worlds.size),
-            maxStageByWorld = maxStage.mapValues { (_, v) -> v.coerceIn(0, 10) },
-            completedStageIds = safeString("completed_stages", "")
+            schemaVersion = safeInt(prefs, "save_schema_version", 1).coerceAtLeast(1),
+            coins = safeInt(prefs, "coins", 0).coerceAtLeast(0),
+            stars = safeInt(prefs, "stars", 0).coerceAtLeast(0),
+            unlockedWorldId = safeInt(prefs, "unlocked_world", 1).coerceIn(1, maxWorldId),
+            maxStageByWorld = maxStage,
+            completedStageIds = safeString(prefs, "completed_stages", "")
                 .orEmpty().split(',').filter { it.isNotBlank() }.toSet(),
-            starsByStage = decodeStringIntMap(safeString("stage_stars", null))
+            starsByStage = decodeStringIntMap(safeString(prefs, "stage_stars", null))
                 .mapValues { (_, v) -> v.coerceIn(0, 3) },
-            solvedTasks = safeInt("solved", 0).coerceAtLeast(0),
-            correctTasks = safeInt("correct", 0).coerceAtLeast(0),
+            solvedTasks = safeInt(prefs, "solved", 0).coerceAtLeast(0),
+            correctTasks = safeInt(prefs, "correct", 0).coerceAtLeast(0),
             categoryStats = stats,
-            dailyStreak = safeInt("daily_streak", 0).coerceAtLeast(0),
-            dailyLastCompletedDate = safeString("daily_last_date", "").orEmpty(),
-            totalDailyMissions = safeInt("daily_total", 0).coerceAtLeast(0),
-            collectedPostcards = decodeIntSet(safeString("postcards", null))
+            dailyStreak = safeInt(prefs, "daily_streak", 0).coerceAtLeast(0),
+            dailyLastCompletedDate = safeString(prefs, "daily_last_date", "").orEmpty(),
+            totalDailyMissions = safeInt(prefs, "daily_total", 0).coerceAtLeast(0),
+            collectedPostcards = decodeIntSet(safeString(prefs, "postcards", null))
         )
     }
 
     fun save(progress: GameProgress) {
+        val prefs = prefs() ?: return
         val editor = prefs.edit()
+            .putInt("save_schema_version", CURRENT_SCHEMA_VERSION)
             .putInt("coins", progress.coins)
             .putInt("stars", progress.stars)
             .putInt("unlocked_world", progress.unlockedWorldId)
@@ -73,54 +97,48 @@ class ProgressStore(context: Context) {
         editor.apply()
     }
 
-    fun loadLanguage(): String =
-        AppLanguages.normalize(safeString("language", "pl"))
-
-    fun saveLanguage(tag: String) {
-        prefs.edit().putString("language", AppLanguages.normalize(tag)).apply()
+    /** UI preferences are device-wide, while game progress belongs to the selected local player. */
+    fun loadLanguage(): String {
+        val saved = globalSafeString("language", null)
+        return if (saved.isNullOrBlank()) AppLanguages.detectDeviceLanguage() else AppLanguages.normalize(saved)
     }
 
-    fun loadNarratorEnabled(): Boolean = safeBoolean("narrator", true)
-    fun saveNarratorEnabled(enabled: Boolean) = prefs.edit().putBoolean("narrator", enabled).apply()
-    fun loadSoundEnabled(): Boolean = safeBoolean("sound", true)
-    fun saveSoundEnabled(enabled: Boolean) = prefs.edit().putBoolean("sound", enabled).apply()
+    fun saveLanguage(tag: String) = globalPrefs.edit().putString("language", AppLanguages.normalize(tag)).apply()
+    fun hasSavedLanguage(): Boolean = globalPrefs.contains("language")
+    fun loadNarratorEnabled(): Boolean = globalSafeBoolean("narrator", true)
+    fun saveNarratorEnabled(enabled: Boolean) = globalPrefs.edit().putBoolean("narrator", enabled).apply()
+    fun loadSoundEnabled(): Boolean = globalSafeBoolean("sound", true)
+    fun saveSoundEnabled(enabled: Boolean) = globalPrefs.edit().putBoolean("sound", enabled).apply()
 
-    /**
-     * Starts the adventure from zero while keeping UI preferences.
-     * Also clears anti-repeat history for a genuinely fresh playthrough.
-     */
+    /** Starts only the active player's adventure from zero. Other local profiles are untouched. */
     fun resetAllProgress(): GameProgress {
-        val language = loadLanguage()
-        val narrator = loadNarratorEnabled()
-        val sound = loadSoundEnabled()
-        prefs.edit().clear()
-            .putString("language", language)
-            .putBoolean("narrator", narrator)
-            .putBoolean("sound", sound)
-            .commit()
+        prefs()?.edit()?.clear()?.putInt("save_schema_version", CURRENT_SCHEMA_VERSION)?.commit()
         QuestionHistoryStore(appContext).clear()
-        runCatching {
-            java.io.File(appContext.filesDir, "attraction_photos").deleteRecursively()
-        }
-        return GameProgress()
+        return GameProgress(schemaVersion = CURRENT_SCHEMA_VERSION)
     }
 
-    private fun safeInt(key: String, default: Int): Int = try {
+    private fun safeInt(prefs: android.content.SharedPreferences, key: String, default: Int): Int = try {
         prefs.getInt(key, default)
     } catch (_: ClassCastException) {
         prefs.edit().remove(key).apply(); default
     }
 
-    private fun safeBoolean(key: String, default: Boolean): Boolean = try {
-        prefs.getBoolean(key, default)
+    private fun safeString(prefs: android.content.SharedPreferences, key: String, default: String?): String? = try {
+        prefs.getString(key, default)
     } catch (_: ClassCastException) {
         prefs.edit().remove(key).apply(); default
     }
 
-    private fun safeString(key: String, default: String?): String? = try {
-        prefs.getString(key, default)
+    private fun globalSafeBoolean(key: String, default: Boolean): Boolean = try {
+        globalPrefs.getBoolean(key, default)
     } catch (_: ClassCastException) {
-        prefs.edit().remove(key).apply(); default
+        globalPrefs.edit().remove(key).apply(); default
+    }
+
+    private fun globalSafeString(key: String, default: String?): String? = try {
+        globalPrefs.getString(key, default)
+    } catch (_: ClassCastException) {
+        globalPrefs.edit().remove(key).apply(); default
     }
 
     private fun encodeIntMap(map: Map<Int, Int>): String = map.entries.joinToString(";") { "${it.key}:${it.value}" }
@@ -149,4 +167,8 @@ class ProgressStore(context: Context) {
         .split(',')
         .mapNotNull { it.toIntOrNull() }
         .toSet()
+
+    companion object {
+        const val CURRENT_SCHEMA_VERSION = 2
+    }
 }
