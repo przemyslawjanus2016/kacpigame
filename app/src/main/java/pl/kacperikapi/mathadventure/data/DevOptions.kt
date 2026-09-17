@@ -1,6 +1,6 @@
 package pl.kacperikapi.mathadventure.data
 
-/** Production content locks. Enable only in a dedicated internal preview build. */
+/** Dedicated closed-testing build options. Keep disabled in production releases. */
 object DevOptions {
-    const val UNLOCK_ALL_CONTENT: Boolean = false
+    const val UNLOCK_ALL_CONTENT: Boolean = true
 }
