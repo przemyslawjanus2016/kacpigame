@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
         store = ProgressStore(this)
         billingManager = PremiumBillingManager(this)
-        applyLanguageSafely(store.loadLanguage())
+        applyLanguageSafely("pl")
 
         setContent {
             KacperKapiTheme {
@@ -124,7 +124,6 @@ class MainActivity : ComponentActivity() {
 
 private sealed interface Screen {
     data object Splash : Screen
-    data object Language : Screen
     data object Profiles : Screen
     data object Worlds : Screen
     data class Map(val worldId: Int) : Screen
@@ -162,16 +161,9 @@ private fun GameApp(
         store.save(newProgress)
     }
 
-    fun switchLanguage() {
-        val next = AppLanguages.next(store.loadLanguage())
-        store.saveLanguage(next)
-        onLanguageChanged()
-    }
-
-    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && screen != Screen.Language && !(screen == Screen.Profiles && store.activeProfile() == null)) {
+    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash && !(screen == Screen.Profiles && store.activeProfile() == null)) {
         screen = when (val current = screen) {
-            Screen.Splash -> Screen.Language
-            Screen.Language -> Screen.Language
+            Screen.Splash -> Screen.Profiles
             Screen.Profiles -> Screen.Worlds
             Screen.Worlds -> Screen.Worlds
             is Screen.Map -> Screen.Worlds
@@ -206,15 +198,8 @@ private fun GameApp(
 
     when (val current = screen) {
         Screen.Splash -> SplashScreen {
-            screen = if (store.hasSavedLanguage()) Screen.Profiles else Screen.Language
+            screen = Screen.Profiles
         }
-        Screen.Language -> LanguageSelectScreen(
-            suggestedLanguage = store.loadLanguage(),
-            onSelect = { tag ->
-                store.saveLanguage(tag)
-                onLanguageChanged()
-            }
-        )
         Screen.Profiles -> ProfileSelectScreen(
             profiles = profiles,
             activeProfileId = store.activeProfileId(),
@@ -261,8 +246,7 @@ private fun GameApp(
             onPassport = { screen = Screen.Passport },
             onRewards = { screen = Screen.Rewards },
             onParent = { screen = Screen.Parent },
-            onSettings = { screen = Screen.Settings },
-            onLanguage = ::switchLanguage
+            onSettings = { screen = Screen.Settings }
         )
         is Screen.Map -> {
             val safeWorldId = current.worldId.coerceIn(1, GameContent.worlds.size)
@@ -418,7 +402,6 @@ private fun GameApp(
             soundEnabled = soundEnabled,
             onNarratorChanged = { narratorEnabled = it; store.saveNarratorEnabled(it) },
             onSoundChanged = { soundEnabled = it; store.saveSoundEnabled(it) },
-            onLanguage = ::switchLanguage,
             onResetAll = {
                 progress = store.resetAllProgress()
                 selectedStages = GameContent.worlds.associate { it.id to 1 }
