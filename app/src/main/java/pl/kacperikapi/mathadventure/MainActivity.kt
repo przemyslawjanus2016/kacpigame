@@ -137,6 +137,7 @@ private sealed interface Screen {
     data object Parent : Screen
     data object Settings : Screen
     data object Premium : Screen
+    data object Base : Screen
 }
 
 @Composable
@@ -177,6 +178,7 @@ private fun GameApp(
             Screen.Parent -> Screen.Worlds
             Screen.Settings -> Screen.Worlds
             Screen.Premium -> Screen.Worlds
+            Screen.Base -> Screen.Worlds
         }
     }
 
@@ -245,7 +247,8 @@ private fun GameApp(
             onPassport = { screen = Screen.Passport },
             onRewards = { screen = Screen.Rewards },
             onParent = { screen = Screen.Parent },
-            onSettings = { screen = Screen.Settings }
+            onSettings = { screen = Screen.Settings },
+            onBase = { screen = Screen.Base }
         )
         is Screen.Map -> {
             val safeWorldId = current.worldId.coerceIn(1, GameContent.worlds.size)
@@ -408,6 +411,7 @@ private fun GameApp(
             },
             onBack = { screen = Screen.Worlds }
         )
+        Screen.Base -> KacperKapiBaseScreen(progress = progress, onBack = { screen = Screen.Worlds })
         Screen.Premium -> PremiumUnlockScreen(
             state = billingState,
             onBuy = { billingManager.launchPurchase(activity) },
