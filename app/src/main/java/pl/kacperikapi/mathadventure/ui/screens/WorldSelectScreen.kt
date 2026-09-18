@@ -41,7 +41,7 @@ fun WorldSelectScreen(
     onDaily: () -> Unit,
     onPassport: () -> Unit,
     onRewards: () -> Unit,
-    onParent: () -> Unit
+    onParent: () -> Unit,
     onSettings: () -> Unit
 ) {
     BoxWithConstraints(
