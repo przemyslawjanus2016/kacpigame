@@ -41,16 +41,15 @@ fun WorldSelectScreen(
     onDaily: () -> Unit,
     onPassport: () -> Unit,
     onRewards: () -> Unit,
-    onParent: () -> Unit,
-    onSettings: () -> Unit,
-    onLanguage: () -> Unit
+    onParent: () -> Unit
+    onSettings: () -> Unit
 ) {
     BoxWithConstraints(
         Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(SkyBlue.copy(.35f), Cream, Parchment))).statusBarsPadding()
     ) {
         val tablet = maxWidth >= 700.dp
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            ResourceBar(progress = progress, onLanguageClick = onLanguage, onSettingsClick = onSettings)
+            ResourceBar(progress = progress, onLanguageClick = {}, onSettingsClick = onSettings)
             GameTitle(compact = !tablet)
             TextButton(onClick = onProfile, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Text("👤 $activeProfileName  •  ${playerSwitchLabel()}", fontWeight = FontWeight.Black, color = AdventureGreen)
