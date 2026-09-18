@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#2f7d32">
+<title>Kacper & Kapi — Mój Pierwszy Biznes</title>
+<style>
+:root{
+  --ink:#17304f;--muted:#69768a;--wood:#9a5524;--wood2:#6e3517;--cream:#fff8e9;
+  --blue:#2d7de2;--green:#48b943;--orange:#ff8c22;--yellow:#ffd34b;--pink:#f26d9f;
+  --red:#ed4e4e;--border:#e7c596;--panel:#fffdf7;--shadow:0 10px 26px rgba(73,42,15,.17)
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#f4e6ca;color:var(--ink);font-family:Trebuchet MS,Arial,sans-serif;overscroll-behavior:none}
+button{font:inherit;touch-action:manipulation}
+.app{width:min(100%,540px);min-height:100vh;margin:auto;background:linear-gradient(#f6ca7f 0,#fae9c6 38%,#f5d9a7 100%);overflow:hidden;position:relative}
+.screen{display:none;min-height:100vh;padding-bottom:86px}
+.screen.active{display:block}
+.card{background:rgba(255,253,247,.98);border:2px solid rgba(151,84,31,.22);border-radius:22px;box-shadow:var(--shadow)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:9px 11px;background:linear-gradient(#ffd78d,#f5b553);border-bottom:3px solid #ae6328;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:7px;font-weight:900;line-height:1}
+.brand .paw{font-size:24px}.brand small{display:block;font-size:10px;color:#6c3d18;margin-top:4px}
+.hud{display:flex;gap:5px}.pill{background:#fff6df;border:2px solid #d79845;border-radius:999px;padding:5px 8px;font-weight:900;white-space:nowrap}
+.scene{margin:10px 10px 8px;border-radius:25px;overflow:hidden;position:relative;background:linear-gradient(#91d7fa,#fff1bd 45%,#c78747 46%,#8a4c24);height:320px;border:3px solid #fff0c7;box-shadow:var(--shadow)}
+.scene .shop{position:absolute;inset:0;background:
+linear-gradient(90deg,transparent 0 8%,rgba(108,58,25,.16) 8% 10%,transparent 10% 90%,rgba(108,58,25,.16) 90% 92%,transparent 92%),
+linear-gradient(#d6effd 0 31%,#f1d199 31% 34%,#bd7c3b 34% 100%)}
+.window{position:absolute;left:17px;top:35px;width:150px;height:100px;background:linear-gradient(#75c9f3,#e7f7ff);border:9px solid #8b4d24;border-radius:7px}
+.window:before,.window:after{content:"";position:absolute;background:#8b4d24}.window:before{left:64px;top:0;width:8px;height:100%}.window:after{left:0;top:43px;width:100%;height:7px}
+.shelf-bg{position:absolute;right:14px;top:50px;width:190px;height:190px;background:#8f4b21;border:8px solid #6f3517;border-radius:12px;box-shadow:inset 0 0 0 3px #b8753f}
+.shelf-bg:before,.shelf-bg:after{content:"";position:absolute;left:0;right:0;height:8px;background:#6f3517}.shelf-bg:before{top:60px}.shelf-bg:after{top:120px}
+.prod{position:absolute;font-size:36px;filter:drop-shadow(0 3px 1px #0002)}.p1{right:148px;top:70px}.p2{right:93px;top:70px}.p3{right:37px;top:70px}.p4{right:148px;top:135px}.p5{right:91px;top:135px}.p6{right:34px;top:135px}
+.level{position:absolute;left:10px;top:9px;background:#fff;border:3px solid var(--blue);padding:7px 12px;border-radius:999px;font-weight:900;z-index:5}
+.characters{position:absolute;left:20px;bottom:12px;width:245px;height:210px}
+.kacper{position:absolute;left:74px;bottom:8px;width:130px;height:186px}
+.head{position:absolute;left:25px;top:26px;width:86px;height:80px;background:#ffd3ae;border-radius:48% 48% 45% 45%;border:2px solid #e6a77d;z-index:3}
+.hair{position:absolute;left:20px;top:8px;width:96px;height:58px;background:#f0c05c;border-radius:55% 55% 35% 35%;transform:rotate(-5deg);z-index:4;clip-path:polygon(0 48%,10% 10%,25% 25%,36% 0,47% 23%,61% 2%,72% 25%,87% 8%,100% 44%,94% 75%,4% 78%)}
+.glasses{position:absolute;left:31px;top:54px;width:77px;height:30px;z-index:7}
+.glasses:before,.glasses:after{content:"";position:absolute;top:0;width:30px;height:24px;border:5px solid #1765b5;border-radius:9px;background:#fff3}
+.glasses:before{left:0;transform:rotate(-5deg)}.glasses:after{right:0;transform:rotate(5deg)}
+.glasses i{position:absolute;left:32px;top:9px;width:14px;height:5px;background:#1765b5;display:block}
+.eye{position:absolute;top:64px;width:8px;height:11px;background:#21466e;border-radius:50%;z-index:8}.eye.l{left:48px}.eye.r{left:88px}
+.mouth{position:absolute;left:56px;top:89px;width:30px;height:16px;background:#7d2d22;border-radius:3px 3px 20px 20px;z-index:8}.mouth:after{content:"";position:absolute;left:7px;bottom:2px;width:17px;height:6px;background:#ef7d85;border-radius:50%}
+.body{position:absolute;left:26px;top:103px;width:85px;height:78px;background:#3dad55;border-radius:20px 20px 12px 12px;border:2px solid #23803a}
+.body:after{content:"▲";position:absolute;left:28px;top:15px;color:#b5e372;font-size:30px}
+.arm{position:absolute;width:55px;height:20px;background:#ffd3ae;border:2px solid #e6a77d;border-radius:18px;z-index:2}.arm.a{left:0;top:117px;transform:rotate(-18deg)}.arm.b{right:0;top:117px;transform:rotate(22deg)}
+.kapi{position:absolute;left:0;bottom:0;width:102px;height:110px}
+.doghead{position:absolute;left:24px;top:15px;width:60px;height:58px;background:#fff6e7;border-radius:48%;border:2px solid #a6653f;z-index:4}
+.ear{position:absolute;top:7px;width:35px;height:72px;background:#a95528;border-radius:50%;z-index:2}.ear.e1{left:4px;transform:rotate(8deg)}.ear.e2{right:4px;transform:rotate(-8deg)}
+.dogpatch{position:absolute;left:28px;top:15px;width:27px;height:34px;background:#b45b2e;border-radius:55%;z-index:5;transform:rotate(-12deg)}
+.dogeye{position:absolute;top:35px;width:8px;height:10px;background:#342116;border-radius:50%;z-index:6}.dogeye.d1{left:39px}.dogeye.d2{left:66px}
+.nose{position:absolute;left:51px;top:52px;width:12px;height:9px;background:#261b16;border-radius:50%;z-index:7}
+.tongue{position:absolute;left:53px;top:61px;width:10px;height:13px;background:#ed7f88;border-radius:0 0 8px 8px;z-index:6}
+.dogbody{position:absolute;left:24px;top:70px;width:60px;height:40px;background:#fff6e7;border-radius:40% 40% 10px 10px;border:2px solid #a6653f}
+.bubble{position:absolute;left:16px;bottom:15px;right:16px;color:#fff;font-weight:900;font-size:18px;text-shadow:0 2px 5px #0008;z-index:5}.bubble b{color:#ffe27b}
+.task{margin:8px 10px;padding:11px 12px;font-weight:900}
+.products{margin:8px 10px;padding:10px}.products h3{margin:0 0 8px}.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.product{background:#fff5dc;border:2px solid #e8c69a;border-radius:14px;padding:7px;text-align:center;font-weight:800}.product em{font-style:normal;font-size:33px;display:block}.price{background:#ffe9a7;padding:2px 6px;border-radius:7px;display:inline-block;margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:8px 10px}.stat{padding:9px;text-align:center;border-radius:17px;border:2px solid #e4c08f;background:#fff9e7}.stat span{display:block;font-size:12px;color:#5d687b;font-weight:800}.stat b{font-size:26px}.stat.paid{background:#e1f8e6;border-color:#69c97f}.stat.change{background:#ffe7ef;border-color:#ed8cb0}
+.money{margin:8px 10px;padding:10px}.tabrow{display:flex;gap:7px;margin-bottom:8px}.tab{flex:1;border-radius:999px;padding:5px;text-align:center;font-weight:900;background:#ffdb62}.tab.blue{background:#a9d6ff}.coins{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.coin{border:0;aspect-ratio:1/1;border-radius:50%;max-width:78px;width:100%;margin:auto;background:radial-gradient(circle at 35% 30%,#fff7c8,#e0ad3d 55%,#9b6d1d);box-shadow:inset 0 0 0 5px #f6d56c,inset 0 0 0 7px #9b7328,0 5px 8px #0002;font-weight:900;font-size:17px;color:#38280e}
+.coin.silver{background:radial-gradient(circle at 35% 30%,#fff,#cad2db 58%,#7d8792);box-shadow:inset 0 0 0 5px #eef2f6,inset 0 0 0 7px #808993,0 5px 8px #0002}.coin.hit{outline:5px solid #4cb94a;transform:translateY(-2px)}
+.hint{margin:8px 10px;padding:10px 12px;background:#fff8cf;border:2px dashed #dfb33b;border-radius:15px;font-weight:800;min-height:48px}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 10px}.action{border:0;min-height:55px;border-radius:17px;color:#fff;font-weight:900;font-size:17px;box-shadow:0 5px 0 #0002}.orange{background:linear-gradient(#ffa33a,#f27912)}.bluebtn{background:linear-gradient(#4d9cf7,#2875d9)}.green{background:linear-gradient(#6bd961,#37ad32)}.purple{background:linear-gradient(#9665f4,#7341dd)}.action:disabled{filter:grayscale(.65);opacity:.5}
+.stock{margin:8px 10px;padding:10px}.stockrow{display:grid;grid-template-columns:1.2fr .75fr 1fr;align-items:center;gap:5px;padding:8px 0;border-bottom:1px dashed #ddc6a5}.stockrow:last-child{border-bottom:0}.qty{display:flex;justify-content:flex-end;align-items:center;gap:4px}.qty button{width:37px;height:37px;border:0;border-radius:11px;background:#3f8ee9;color:white;font-size:21px;font-weight:900}.qty output{width:32px;text-align:center;font-weight:900}
+.summary{margin:8px 10px;padding:12px}.summary h2{text-align:center;margin:2px 0 8px}.stars{text-align:center;font-size:48px;filter:drop-shadow(0 3px 3px #c87b13)}.sumgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.sum{padding:10px;border-radius:15px;background:#fff4d8;border:2px solid #e4c28f;text-align:center;font-weight:800}.sum b{display:block;font-size:25px}.progress{height:22px;border-radius:999px;background:#eadbc5;overflow:hidden;border:2px solid #cba77c}.progress div{height:100%;width:70%;background:linear-gradient(90deg,#45b948,#86dd5e)}
+.upgrades{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.upgrade{border:2px solid #dcc09a;background:#fffaf0;border-radius:14px;padding:8px 5px;text-align:center}.upgrade.selected{outline:4px solid #48b943}.upgrade span{font-size:32px;display:block}.upgrade b{font-size:12px;display:block}.upgrade small{font-size:11px}
+.splash{min-height:100vh;background:linear-gradient(#59aee9 0 31%,#70bb69 31% 58%,#e8b961 58%);position:relative;overflow:hidden;display:flex;align-items:flex-end}.splash:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 16%,#fff7 0 7%,transparent 8%),linear-gradient(140deg,transparent 0 55%,#fff5 56%,transparent 57%)}.mountains{position:absolute;left:0;right:0;top:100px;height:180px;background:linear-gradient(145deg,transparent 0 27%,#e9f2f8 28% 36%,#6e8292 37% 55%,transparent 56%),linear-gradient(215deg,transparent 0 31%,#fff 32% 38%,#758898 39% 58%,transparent 59%);opacity:.9}.splashchars{position:absolute;left:50%;transform:translateX(-50%) scale(1.45);bottom:260px;width:245px;height:210px}.splashbox{position:relative;z-index:3;width:100%;padding:24px 18px 42px;background:linear-gradient(transparent,#000c 32%);text-align:center;color:white}.splashbox h1{font-size:38px;line-height:.95;margin:0;text-shadow:0 4px 13px #000}.splashbox h2{color:#ffd452;margin:10px 0 5px}.splashbox p{font-weight:800}.start{border:0;background:#49b64b;color:white;font-weight:900;border-radius:999px;padding:14px 28px;font-size:20px;box-shadow:0 7px 0 #277d2a}
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,540px);height:76px;background:white;border-top:1px solid #eee;display:grid;grid-template-columns:repeat(4,1fr);z-index:30;padding-bottom:max(4px,env(safe-area-inset-bottom))}.nav button{border:0;background:none;color:#888f9d;font-weight:800;font-size:11px}.nav .ico{font-size:22px;display:block}.nav button.active{color:#216cd5}
+.toast{position:fixed;z-index:50;left:50%;transform:translateX(-50%);bottom:88px;width:min(88%,460px);background:#18314f;color:white;border-radius:16px;padding:12px;text-align:center;font-weight:900;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1}
+@media(max-width:365px){.scene{height:290px}.product-grid{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}.action{min-height:48px}.bubble{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="screen active splash" id="splash">
+  <div class="mountains"></div>
+  <div class="splashchars">
+    <div class="kacper"><div class="hair"></div><div class="head"></div><div class="glasses"><i></i></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="arm a"></div><div class="arm b"></div><div class="body"></div></div>
+    <div class="kapi"><div class="ear e1"></div><div class="ear e2"></div><div class="doghead"></div><div class="dogpatch"></div><div class="dogeye d1"></div><div class="dogeye d2"></div><div class="nose"></div><div class="tongue"></div><div class="dogbody"></div></div>
+  </div>
+  <div class="splashbox">
+    <h1>Kacper & Kapi</h1><h2>Mój Pierwszy Biznes</h2>
+    <p>Ucz się liczyć, zarabiać i podejmować dobre decyzje.</p>
+    <button class="start" id="start">▶ Zaczynamy</button>
+  </div>
+</section>
+
+<section class="screen" id="cash1">
+<header class="topbar"><div class="brand"><span class="paw">🐾</span><div>Kacper & Kapi<small>Mój Pierwszy Biznes</small></div></div><div class="hud"><div class="pill">❤️❤️❤️</div><div class="pill">⭐ <span class="score">0</span></div></div></header>
+<div class="scene"><div class="shop"></div><div class="window"></div><div class="shelf-bg"></div><span class="prod p1">🧃</span><span class="prod p2">🍎</span><span class="prod p3">🥖</span><span class="prod p4">✏️</span><span class="prod p5">🍫</span><span class="prod p6">💧</span><div class="level">🏪 Poziom 1: Sklepik</div><div class="characters"><div class="kacper"><div class="hair"></div><div class="head"></div><div class="glasses"><i></i></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="arm a"></div><div class="arm b"></div><div class="body"></div></div><div class="kapi"><div class="ear e1"></div><div class="ear e2"></div><div class="doghead"></div><div class="dogpatch"></div><div class="dogeye d1"></div><div class="dogeye d2"></div><div class="nose"></div><div class="tongue"></div><div class="dogbody"></div></div></div><div class="bubble"><b>Kapi:</b> Policz razem ze mną! Klientka kupuje 2 soki po 4 zł.</div></div>
+<div class="products card"><h3>Nasze produkty</h3><div class="product-grid"><div class="product"><em>🧃</em>Sok <span class="price">4 zł</span></div><div class="product"><em>🍎</em>Jabłko <span class="price">3 zł</span></div><div class="product"><em>🥖</em>Chleb <span class="price">5 zł</span></div><div class="product"><em>✏️</em>Kredki <span class="price">2 zł</span></div><div class="product"><em>🍫</em>Czekolada <span class="price">3 zł</span></div><div class="product"><em>💧</em>Woda <span class="price">2 zł</span></div></div></div>
+<div class="task card">👧 Klientka: „2 soki po 4 zł, proszę!”</div>
+<div class="stats"><div class="stat"><span>Do zapłaty</span><b>8 zł</b></div><div class="stat paid"><span>Klient płaci</span><b>10 zł</b></div><div class="stat change"><span>Reszta</span><b id="change1">? zł</b></div><div class="stat"><span>Cel</span><b>10 − 8</b></div></div>
+<div class="money card"><div class="tabrow"><div class="tab">Monety</div><div class="tab blue">Wybierz resztę</div></div><div class="coins" data-money="cash1"><button class="coin silver" data-v="1">1 zł</button><button class="coin" data-v="2">2 zł</button><button class="coin silver" data-v="5">5 zł</button><button class="coin silver" data-v=".1">10 gr</button><button class="coin silver" data-v=".2">20 gr</button><button class="coin silver" data-v=".5">50 gr</button></div></div>
+<div class="hint" id="hint1">Wybierz monetę lub monety, które razem dają poprawną resztę.</div>
+<div class="actions"><button class="action orange" data-clear="cash1">↻ Wyczyść</button><button class="action bluebtn" data-check="cash1">✓ Sprawdź</button><button class="action green" id="next1" disabled>Dalej ➜</button></div>
+</section>
+
+<section class="screen" id="stock">
+<header class="topbar"><div class="brand"><span class="paw">🐾</span><div>Kacper & Kapi<small>Mój Pierwszy Biznes</small></div></div><div class="hud"><div class="pill">❤️❤️❤️</div><div class="pill">⭐ <span class="score">1</span></div></div></header>
+<div class="scene"><div class="shop"></div><div class="window"></div><div class="shelf-bg"></div><span class="prod p1">🧃</span><span class="prod p2">🍎</span><span class="prod p3">📦</span><span class="prod p4">✏️</span><span class="prod p5">📦</span><span class="prod p6">💧</span><div class="level">📦 Poziom 2: Uzupełnij towar</div><div class="characters"><div class="kacper"><div class="hair"></div><div class="head"></div><div class="glasses"><i></i></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="arm a"></div><div class="arm b"></div><div class="body"></div></div><div class="kapi"><div class="ear e1"></div><div class="ear e2"></div><div class="doghead"></div><div class="dogpatch"></div><div class="dogeye d1"></div><div class="dogeye d2"></div><div class="nose"></div><div class="tongue"></div><div class="dogbody"></div></div></div><div class="bubble"><b>Kapi:</b> Sprawdź, czego brakuje na półkach!</div></div>
+<div class="stock card"><div class="task">🎯 Zadanie: dołóż dokładnie <b>3 soki</b> i <b>2 chleby</b>. Nic więcej.</div>
+<div class="stockrow"><div>🧃 <b>Sok</b></div><div>1/4</div><div class="qty"><button data-item="juice" data-d="-1">−</button><output id="qjuice">0</output><button data-item="juice" data-d="1">+</button></div></div>
+<div class="stockrow"><div>🍎 <b>Jabłko</b></div><div>6/6</div><div class="qty"><button data-item="apple" data-d="-1">−</button><output id="qapple">0</output><button data-item="apple" data-d="1">+</button></div></div>
+<div class="stockrow"><div>🥖 <b>Chleb</b></div><div>0/4</div><div class="qty"><button data-item="bread" data-d="-1">−</button><output id="qbread">0</output><button data-item="bread" data-d="1">+</button></div></div>
+<div class="stockrow"><div>✏️ <b>Kredki</b></div><div>5/6</div><div class="qty"><button data-item="pencils" data-d="-1">−</button><output id="qpencils">0</output><button data-item="pencils" data-d="1">+</button></div></div>
+<div class="stockrow"><div>💧 <b>Woda</b></div><div>4/6</div><div class="qty"><button data-item="water" data-d="-1">−</button><output id="qwater">0</output><button data-item="water" data-d="1">+</button></div></div></div>
+<div class="hint" id="hintStock">Ustaw ilości i sprawdź zamówienie.</div>
+<div class="actions"><button class="action orange" id="clearStock">↻ Wyczyść</button><button class="action bluebtn" id="checkStock">✓ Sprawdź</button><button class="action green" id="nextStock" disabled>Dalej ➜</button></div>
+</section>
+
+<section class="screen" id="cash2">
+<header class="topbar"><div class="brand"><span class="paw">🐾</span><div>Kacper & Kapi<small>Mój Pierwszy Biznes</small></div></div><div class="hud"><div class="pill">❤️❤️❤️</div><div class="pill">⭐ <span class="score">2</span></div></div></header>
+<div class="scene"><div class="shop"></div><div class="window"></div><div class="shelf-bg"></div><span class="prod p1">🥖</span><span class="prod p2">💧</span><span class="prod p3">💧</span><span class="prod p4">🍫</span><span class="prod p5">🍎</span><span class="prod p6">🧃</span><div class="level">🛒 Poziom 3: Większe zakupy</div><div class="characters"><div class="kacper"><div class="hair"></div><div class="head"></div><div class="glasses"><i></i></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="arm a"></div><div class="arm b"></div><div class="body"></div></div><div class="kapi"><div class="ear e1"></div><div class="ear e2"></div><div class="doghead"></div><div class="dogpatch"></div><div class="dogeye d1"></div><div class="dogeye d2"></div><div class="nose"></div><div class="tongue"></div><div class="dogbody"></div></div></div><div class="bubble"><b>Kapi:</b> Policz spokojnie krok po kroku!</div></div>
+<div class="task card">👧 Klientka: „Poproszę chleb, 2 wody i czekoladę!”<br><small>5 zł + 2 × 2 zł + 3 zł = 12 zł</small></div>
+<div class="stats"><div class="stat"><span>Do zapłaty</span><b>12 zł</b></div><div class="stat paid"><span>Klient płaci</span><b>20 zł</b></div><div class="stat change"><span>Reszta</span><b id="change2">? zł</b></div><div class="stat"><span>Cel</span><b>20 − 12</b></div></div>
+<div class="money card"><div class="tabrow"><div class="tab">Monety</div><div class="tab blue">Ułóż 8 zł</div></div><div class="coins" data-money="cash2"><button class="coin silver" data-v="1">1 zł</button><button class="coin" data-v="2">2 zł</button><button class="coin silver" data-v="5">5 zł</button><button class="coin silver" data-v=".1">10 gr</button><button class="coin silver" data-v=".2">20 gr</button><button class="coin silver" data-v=".5">50 gr</button></div></div>
+<div class="hint" id="hint2">Możesz naciskać te same monety kilka razy.</div>
+<div class="actions"><button class="action orange" data-clear="cash2">↻ Wyczyść</button><button class="action bluebtn" data-check="cash2">✓ Sprawdź</button><button class="action green" id="next2" disabled>Dalej ➜</button></div>
+</section>
+
+<section class="screen" id="promo">
+<header class="topbar"><div class="brand"><span class="paw">🐾</span><div>Kacper & Kapi<small>Mój Pierwszy Biznes</small></div></div><div class="hud"><div class="pill">❤️❤️❤️</div><div class="pill">⭐ <span class="score">3</span></div></div></header>
+<div class="scene"><div class="shop"></div><div class="window"></div><div class="shelf-bg"></div><span class="prod p1">💧</span><span class="prod p2">💧</span><span class="prod p3">💧</span><span class="prod p4">🧃</span><span class="prod p5">🍎</span><span class="prod p6">🥖</span><div class="level">📣 Poziom 4: Promocja dnia</div><div class="characters"><div class="kacper"><div class="hair"></div><div class="head"></div><div class="glasses"><i></i></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="arm a"></div><div class="arm b"></div><div class="body"></div></div><div class="kapi"><div class="ear e1"></div><div class="ear e2"></div><div class="doghead"></div><div class="dogpatch"></div><div class="dogeye d1"></div><div class="dogeye d2"></div><div class="nose"></div><div class="tongue"></div><div class="dogbody"></div></div></div><div class="bubble"><b>Kapi:</b> Promocje pomagają sprzedawać więcej!</div></div>
+<div class="task card">🔥 <b>PROMOCJA DNIA:</b> 3 wody za 5 zł zamiast 6 zł.<br>👧 Klientka kupuje <b>2 zestawy</b> i płaci 20 zł.</div>
+<div class="stats"><div class="stat"><span>Do zapłaty</span><b>10 zł</b></div><div class="stat paid"><span>Klient płaci</span><b>20 zł</b></div><div class="stat change"><span>Reszta</span><b id="change3">? zł</b></div><div class="stat"><span>Promocja</span><b>2 × 5 zł</b></div></div>
+<div class="money card"><div class="tabrow"><div class="tab">Monety</div><div class="tab blue">Ułóż 10 zł</div></div><div class="coins" data-money="promo"><button class="coin silver" data-v="1">1 zł</button><button class="coin" data-v="2">2 zł</button><button class="coin silver" data-v="5">5 zł</button><button class="coin silver" data-v=".1">10 gr</button><button class="coin silver" data-v=".2">20 gr</button><button class="coin silver" data-v=".5">50 gr</button></div></div>
+<div class="hint" id="hint3">Najpierw policz cenę 2 zestawów, potem resztę z 20 zł.</div>
+<div class="actions"><button class="action orange" data-clear="promo">↻ Wyczyść</button><button class="action purple" data-check="promo">✓ Sprawdź</button><button class="action green" id="next3" disabled>Dalej ➜</button></div>
+</section>
+
+<section class="screen" id="summary">
+<header class="topbar"><div class="brand"><span class="paw">🐾</span><div>Kacper & Kapi<small>Mój Pierwszy Biznes</small></div></div><div class="hud"><div class="pill">🏆 Dzień 1</div><div class="pill">⭐ 4</div></div></header>
+<div class="scene"><div class="shop"></div><div class="window"></div><div class="shelf-bg"></div><span class="prod p1">🎉</span><span class="prod p2">⭐</span><span class="prod p3">🎉</span><span class="prod p4">💰</span><span class="prod p5">🐷</span><span class="prod p6">🏆</span><div class="level">🏆 Podsumowanie dnia</div><div class="characters"><div class="kacper"><div class="hair"></div><div class="head"></div><div class="glasses"><i></i></div><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div><div class="arm a"></div><div class="arm b"></div><div class="body"></div></div><div class="kapi"><div class="ear e1"></div><div class="ear e2"></div><div class="doghead"></div><div class="dogpatch"></div><div class="dogeye d1"></div><div class="dogeye d2"></div><div class="nose"></div><div class="tongue"></div><div class="dogbody"></div></div></div><div class="bubble"><b>Kapi:</b> Brawo! Zobaczmy, jak poszedł pierwszy dzień!</div></div>
+<div class="summary card"><h2>Brawo! Świetnie sobie poradziłeś!</h2><div class="stars">⭐⭐⭐</div><div class="sumgrid"><div class="sum">🛍️ Sprzedaż<b>48 zł</b></div><div class="sum">🪙 Koszty<b>18 zł</b></div><div class="sum">💰 Zysk<b>30 zł</b></div><div class="sum">🐷 Oszczędności<b>10 zł</b></div></div><h3>Cel marzeń: Nowa półka</h3><div class="progress"><div></div></div><p style="text-align:center;font-weight:900">70 zł / 100 zł — jeszcze 30 zł!</p><h3>Co chcesz ulepszyć?</h3><div class="upgrades"><button class="upgrade" data-up="shelf"><span>🗄️</span><b>Większa półka</b><small>50 zł</small></button><button class="upgrade" data-up="ad"><span>📣</span><b>Reklama</b><small>30 zł</small></button><button class="upgrade" data-up="pig"><span>🐷</span><b>Skarbonka</b><small>20 zł</small></button></div></div>
+<div class="hint" id="hintSummary">Wybierz jedno ulepszenie sklepu.</div>
+<div class="actions"><button class="action orange" id="restart">↻ Jeszcze raz</button><button class="action bluebtn" id="buy">✓ Kup</button><button class="action green" id="day2" disabled>Następny dzień ➜</button></div>
+</section>
+
+<div class="nav" id="nav" hidden><button class="active"><span class="ico">🏠</span>Sklepik</button><button><span class="ico">🏆</span>Postępy</button><button><span class="ico">🎯</span>Zadania</button><button><span class="ico">⭐</span>Moje marzenia</button></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+<script>
+(()=>{
+const ids=['splash','cash1','stock','cash2','promo','summary'];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const state={money:{cash1:0,cash2:0,promo:0},stock:{juice:0,apple:0,bread:0,pencils:0,water:0},up:null};
+function show(id){ids.forEach(x=>$('#'+x).classList.toggle('active',x===id));$('#nav').hidden=id==='splash';window.scrollTo(0,0);localStorage.setItem('kkb_screen',id)}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1600)}
+$('#start').onclick=()=>show('cash1');
+function moneyDisplay(key){const map={cash1:'#change1',cash2:'#change2',promo:'#change3'};$(map[key]).textContent=(state.money[key]||0).toLocaleString('pl-PL',{maximumFractionDigits:2})+' zł'}
+$$('.coins').forEach(grid=>grid.querySelectorAll('.coin').forEach(btn=>btn.addEventListener('click',()=>{const key=grid.dataset.money;state.money[key]=Math.round((state.money[key]+Number(btn.dataset.v))*100)/100;btn.classList.add('hit');moneyDisplay(key)})));
+$$('[data-clear]').forEach(b=>b.onclick=()=>{const key=b.dataset.clear;state.money[key]=0;document.querySelectorAll('.coins[data-money="'+key+'"] .coin').forEach(x=>x.classList.remove('hit'));const map={cash1:'#change1',cash2:'#change2',promo:'#change3'};$(map[key]).textContent='? zł';const next={cash1:'#next1',cash2:'#next2',promo:'#next3'};$(next[key]).disabled=true});
+const targets={cash1:2,cash2:8,promo:10};const hints={cash1:'#hint1',cash2:'#hint2',promo:'#hint3'};const nexts={cash1:'#next1',cash2:'#next2',promo:'#next3'};
+$$('[data-check]').forEach(b=>b.onclick=()=>{const key=b.dataset.check,v=state.money[key],t=targets[key];if(Math.abs(v-t)<.001){$(hints[key]).textContent='✅ Brawo! Poprawna reszta to '+t+' zł.';$(nexts[key]).disabled=false;toast('⭐ Świetnie!');}else if(v<t){$(hints[key]).textContent='💡 Jeszcze za mało. Masz '+v.toLocaleString('pl-PL')+' zł.';}else{$(hints[key]).textContent='To za dużo. Spróbuj jeszcze raz.';}});
+$('#next1').onclick=()=>show('stock');$('#next2').onclick=()=>show('promo');$('#next3').onclick=()=>show('summary');
+const outs={juice:'#qjuice',apple:'#qapple',bread:'#qbread',pencils:'#qpencils',water:'#qwater'};
+$$('.qty button').forEach(b=>b.onclick=()=>{const k=b.dataset.item;state.stock[k]=Math.max(0,Math.min(9,state.stock[k]+Number(b.dataset.d)));$(outs[k]).textContent=state.stock[k];$('#nextStock').disabled=true});
+function resetStock(){Object.keys(state.stock).forEach(k=>{state.stock[k]=0;$(outs[k]).textContent='0'});$('#nextStock').disabled=true}
+$('#clearStock').onclick=resetStock;
+$('#checkStock').onclick=()=>{const s=state.stock,ok=s.juice===3&&s.bread===2&&s.apple===0&&s.pencils===0&&s.water===0;if(ok){$('#hintStock').textContent='✅ Idealnie! Uzupełniłeś dokładnie to, czego brakowało.';$('#nextStock').disabled=false;toast('⭐ Dobra decyzja!')}else{$('#hintStock').textContent='💡 Potrzebujemy dokładnie 3 soków i 2 chlebów, nic więcej.'}};
+$('#nextStock').onclick=()=>show('cash2');
+$$('.upgrade').forEach(b=>b.onclick=()=>{$$('.upgrade').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.up=b.dataset.up;$('#day2').disabled=true});
+$('#buy').onclick=()=>{if(!state.up){$('#hintSummary').textContent='Najpierw wybierz ulepszenie.';return}const n={shelf:'Większa półka',ad:'Reklama',pig:'Skarbonka'};$('#hintSummary').textContent='✅ Wybrano: '+n[state.up]+'. Ta decyzja wpłynie na kolejny dzień.';$('#day2').disabled=false;localStorage.setItem('kkb_upgrade',state.up);toast('🏆 Ulepszenie zapisane!')};
+$('#day2').onclick=()=>{$('#hintSummary').textContent='🚧 Dzień 2 będzie następny: ceny, wielu klientów, budżet i prawdziwy zysk.';toast('Dzień 1 ukończony!')};
+$('#restart').onclick=()=>{state.money.cash1=state.money.cash2=state.money.promo=0;state.up=null;resetStock();$$('.coin').forEach(x=>x.classList.remove('hit'));$$('.upgrade').forEach(x=>x.classList.remove('selected'));['#next1','#next2','#next3','#day2'].forEach(x=>$(x).disabled=true);['#change1','#change2','#change3'].forEach(x=>$(x).textContent='? zł');show('cash1')};
+$$('#nav button').forEach((b,i)=>b.onclick=()=>{$$('#nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');const m=['Sklepik','Postępy: 4 zadania w Dniu 1','Zadania: kasa, magazyn, promocja','Cel: rozbudować sklep'][i];toast(m)});
+const saved=localStorage.getItem('kkb_screen');if(saved&&ids.includes(saved)&&saved!=='splash')show(saved);
+})();
+</script>
+</body>
+</html>
