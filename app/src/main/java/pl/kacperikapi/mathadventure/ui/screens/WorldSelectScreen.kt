@@ -43,14 +43,14 @@ fun WorldSelectScreen(
     onRewards: () -> Unit,
     onParent: () -> Unit,
     onSettings: () -> Unit,
-    onLanguage: () -> Unit
+    onBase: () -> Unit
 ) {
     BoxWithConstraints(
         Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(SkyBlue.copy(.35f), Cream, Parchment))).statusBarsPadding()
     ) {
         val tablet = maxWidth >= 700.dp
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            ResourceBar(progress = progress, onLanguageClick = onLanguage, onSettingsClick = onSettings)
+            ResourceBar(progress = progress, onLanguageClick = onSettings, onSettingsClick = onSettings)
             GameTitle(compact = !tablet)
             TextButton(onClick = onProfile, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Text("👤 $activeProfileName  •  ${playerSwitchLabel()}", fontWeight = FontWeight.Black, color = AdventureGreen)
@@ -68,7 +68,7 @@ fun WorldSelectScreen(
                     Text("🔐 ${stringResource(R.string.premium_unlock_title)}", fontWeight = FontWeight.Black)
                 }
             }
-            ActionGrid(onDaily, onPassport, onPractice, onRewards, onParent)
+            ActionGrid(onDaily, onPassport, onPractice, onRewards, onParent, onBase)
             Spacer(Modifier.height(22.dp))
         }
     }
@@ -113,10 +113,10 @@ private fun WorldCard(world: WorldDefinition, unlocked: Boolean, premiumUnlocked
 }
 
 @Composable
-private fun ActionGrid(onDaily: () -> Unit, onPassport: () -> Unit, onPractice: () -> Unit, onRewards: () -> Unit, onParent: () -> Unit) {
+private fun ActionGrid(onDaily: () -> Unit, onPassport: () -> Unit, onPractice: () -> Unit, onRewards: () -> Unit, onParent: () -> Unit, onBase: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { SmallAction("🎁", stringResource(R.string.daily_mission), onDaily, Modifier.weight(1f)); SmallAction("🛂", stringResource(R.string.traveler_passport), onPassport, Modifier.weight(1f)); SmallAction("📚", stringResource(R.string.practice), onPractice, Modifier.weight(1f)) }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { SmallAction("🏆", stringResource(R.string.rewards), onRewards, Modifier.weight(1f)); SmallAction("👨‍👩‍👦", stringResource(R.string.parent), onParent, Modifier.weight(1f)); Spacer(Modifier.weight(1f)) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { SmallAction("🏆", stringResource(R.string.rewards), onRewards, Modifier.weight(1f)); SmallAction("🏠", "Baza Kacpra i Kapi", onBase, Modifier.weight(1f)); SmallAction("👨‍👩‍👦", stringResource(R.string.parent), onParent, Modifier.weight(1f)) }
     }
 }
 
