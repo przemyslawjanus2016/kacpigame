@@ -3,6 +3,8 @@ package pl.kacperikapi.mathadventure
 import android.app.Activity
 import android.graphics.Typeface
 import android.os.Bundle
+import android.content.Intent
+import android.net.Uri
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
@@ -15,8 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
+import org.json.JSONObject
 import pl.kacperikapi.mathadventure.billing.PremiumBillingManager
 import pl.kacperikapi.mathadventure.data.*
 import pl.kacperikapi.mathadventure.ui.screens.*
@@ -151,10 +157,20 @@ private fun GameApp(
     var narratorEnabled by remember { mutableStateOf(store.loadNarratorEnabled()) }
     var soundEnabled by remember { mutableStateOf(store.loadSoundEnabled()) }
     var progressionNotice by remember { mutableStateOf<String?>(null) }
+    var requiredUpdate by remember { mutableStateOf(false) }
     var selectedStages by remember {
         mutableStateOf(GameContent.worlds.associate { it.id to progress.availableMaxStage(it.id).coerceAtLeast(1) })
     }
     val billingState by billingManager.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        requiredUpdate = checkRequiredUpdate()
+    }
+
+    if (requiredUpdate) {
+        ForceUpdateScreen(activity)
+        return
+    }
 
     fun persist(newProgress: GameProgress) {
         progress = newProgress
@@ -416,6 +432,70 @@ private fun GameApp(
             onBack = { screen = Screen.Worlds }
         )
     }
+}
+
+@Composable
+private fun ForceUpdateScreen(activity: Activity) {
+    Box(
+        Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(SkyBlue.copy(.35f), Cream, Parchment))).statusBarsPadding(),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().padding(24.dp).widthIn(max = 560.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = Parchment,
+            shadowElevation = 8.dp
+        ) {
+            Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("🎮", fontSize = 64.sp)
+                Text("Dostępna jest nowa wersja gry!", fontSize = 28.sp, fontWeight = FontWeight.Black, color = AdventureGreen, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(12.dp))
+                Text("Aby dalej grać w Kacper & Kapi, zaktualizuj grę do najnowszej wersji.", fontSize = 18.sp, color = Ink, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(22.dp))
+                Button(
+                    onClick = {
+                        val packageName = activity.packageName
+                        val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+                        val web = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+                        runCatching { activity.startActivity(market) }.getOrElse { activity.startActivity(web) }
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 58.dp),
+                    shape = RoundedCornerShape(20.dp)
+                ) { Text("AKTUALIZUJ", fontSize = 21.sp, fontWeight = FontWeight.Black) }
+            }
+        }
+    }
+}
+
+private suspend fun checkRequiredUpdate(): Boolean = withContext(Dispatchers.IO) {
+    runCatching {
+        val connection = (URL("https://api.github.com/repos/" + BuildConfig.GITHUB_OWNER + "/" + BuildConfig.GITHUB_REPO + "/releases/latest").openConnection() as HttpURLConnection).apply {
+            connectTimeout = 4000
+            readTimeout = 4000
+            setRequestProperty("Accept", "application/vnd.github+json")
+            setRequestProperty("User-Agent", "KacperKapi-Android")
+        }
+        try {
+            if (connection.responseCode !in 200..299) return@runCatching false
+            val body = connection.inputStream.bufferedReader().use { it.readText() }
+            val remote = JSONObject(body).optString("tag_name").removePrefix("v")
+            isVersionNewer(remote, BuildConfig.VERSION_NAME)
+        } finally {
+            connection.disconnect()
+        }
+    }.getOrDefault(false)
+}
+
+private fun isVersionNewer(remote: String, current: String): Boolean {
+    fun parts(value: String) = value.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 }
+    val a = parts(remote)
+    val b = parts(current)
+    for (i in 0 until maxOf(a.size, b.size)) {
+        val av = a.getOrElse(i) { 0 }
+        val bv = b.getOrElse(i) { 0 }
+        if (av != bv) return av > bv
+    }
+    return false
 }
 
 private fun dailyStage(premiumUnlocked: Boolean): Stage {
