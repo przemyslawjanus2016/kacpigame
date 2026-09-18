@@ -49,7 +49,7 @@ fun WorldSelectScreen(
     ) {
         val tablet = maxWidth >= 700.dp
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            ResourceBar(progress = progress, onLanguageClick = {}, onSettingsClick = onSettings)
+            ResourceBar(progress = progress, onSettingsClick = onSettings)
             GameTitle(compact = !tablet)
             TextButton(onClick = onProfile, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Text("👤 $activeProfileName  •  ${playerSwitchLabel()}", fontWeight = FontWeight.Black, color = AdventureGreen)
