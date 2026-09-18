@@ -1,0 +1,59 @@
+name: Build Kacper Kapi Biznes APK
+
+on:
+  push:
+    branches:
+      - kacper-kapi-biznes-v0.3
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build debug APK
+        working-directory: business-game
+        run: gradle --no-daemon assembleDebug
+
+      - name: Prepare APK
+        run: |
+          cp business-game/app/build/outputs/apk/debug/app-debug.apk KacperKapi-Biznes-v0.3.0.apk
+          ls -lh KacperKapi-Biznes-v0.3.0.apk
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KacperKapi-Biznes-v0.3.0-APK
+          path: KacperKapi-Biznes-v0.3.0.apk
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete business-v0.3.0 --cleanup-tag --yes || true
+          gh release create business-v0.3.0 KacperKapi-Biznes-v0.3.0.apk             --target "${GITHUB_SHA}"             --title "Kacper & Kapi: Mój Pierwszy Biznes v0.3.0"             --notes "Pierwszy instalowalny prototyp Android APK: kasa, zatowarowanie, większe zakupy, promocja dnia i podsumowanie."
