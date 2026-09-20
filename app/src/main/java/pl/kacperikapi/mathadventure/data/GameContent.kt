@@ -206,7 +206,7 @@ object GameContent {
         }
 
     fun story(stage: Stage): StoryBeat {
-        val worldNamePl = listOf("Wieliczka", "Kraków", "Tatry", "Rzym", "Londyn", "Mediolan", "Malta")[stage.worldId - 1]
+        val worldNamePl = listOf("Wieliczce", "Krakowie", "Tatrach", "Rzymie", "Londynie", "Mediolanie", "Malcie")[stage.worldId - 1]
         val worldNameEn = listOf("Wieliczka", "Krakow", "Tatras", "Rome", "London", "Milan", "Malta")[stage.worldId - 1]
         val facts = when (stage.worldId) {
             1 -> listOf(
@@ -258,7 +258,7 @@ object GameContent {
         return StoryBeat(
             titlePl = "Ślad prowadzi do: ${stage.namePl}",
             titleEn = "The trail leads to: ${stage.nameEn}",
-            textPl = "Kapi znalazł nowy trop! Kacper sprawdza mapę i ruszają dalej przez $worldNamePl. Rozwiąż zadania, aby odkryć kolejne miejsce.",
+            textPl = "Kapi złapał nowy trop! Kacper sprawdza mapę i ruszają dalej w $worldNamePl. Rozwiąż zadania, aby odkryć kolejne miejsce.",
             textEn = "Kapi found a new clue! Kacper checks the map and they continue through $worldNameEn. Solve the tasks to discover the next place.",
             factPl = facts[factIndex],
             factEn = factsEn[factIndex],
