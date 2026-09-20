@@ -680,12 +680,12 @@ class QuestionEngine(
             id = "daily:clock:$correctPl",
             category = LearningCategory.DAILY,
             type = QuestionType.CHOICE,
-            promptPl = if (half) "Która odpowiedź oznacza wpół do następnej godziny?" else "Wybierz godzinę $hour:00.",
+            promptPl = if (half) "Która odpowiedź oznacza godzinę $hour:30?" else "Wybierz godzinę $hour:00.",
             promptEn = if (half) "Which answer shows half past $hour?" else "Choose $hour:00.",
             optionsPl = optionsPl,
             optionsEn = optionsPl,
             correctIndex = 0,
-            hintPl = "Spójrz na godziny i minuty.",
+            hintPl = if (half) "Pół godziny po $hour to $hour:30." else "Pełna godzina ma 00 minut.",
             hintEn = "Look at the hours and minutes.",
             visual = "🕒"
         )
