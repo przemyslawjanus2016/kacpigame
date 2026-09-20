@@ -206,62 +206,101 @@ object GameContent {
         }
 
     fun story(stage: Stage): StoryBeat {
-        val worldNamePl = listOf("Wieliczce", "Krakowie", "Tatrach", "Rzymie", "Londynie", "Mediolanie", "Malcie")[stage.worldId - 1]
-        val worldNameEn = listOf("Wieliczka", "Krakow", "Tatras", "Rome", "London", "Milan", "Malta")[stage.worldId - 1]
-        val facts = when (stage.worldId) {
-            1 -> listOf(
-                "Wieliczka od setek lat jest związana z wydobyciem soli.",
-                "Pod ziemią znajdują się komory, jeziora i kaplice wykute w soli.",
-                "Kaplica św. Kingi należy do najbardziej znanych miejsc kopalni."
+        val adventures = mapOf(
+            1 to listOf(
+                "Kapi wyczuł zapach soli i pociągnął Kacpra w stronę Rynku Górnego. To tutaj zaczyna się ich wielicka wyprawa!",
+                "Kacper zauważył mury Zamku Żupnego, a Kapi już krąży przy wejściu i sprawdza każdy zakamarek.",
+                "Przy tężni Kapi nadstawił uszu, a Kacper poczuł w powietrzu słoną mgiełkę. Czas sprawdzić, skąd się bierze!",
+                "Przed Szybem Daniłowicza Kapi zatrzymał się i spojrzał w dół. Kacper wie, że prawdziwa przygoda prowadzi pod ziemię.",
+                "W komorze Kopernika Kacper spogląda w górę, jakby szukał gwiazd, a Kapi cierpliwie czeka na kolejną wskazówkę.",
+                "W Kaplicy św. Kingi Kapi cichnie, a Kacper z zachwytem ogląda solne rzeźby i niezwykłe wnętrze.",
+                "Echo w Komorze Weimar przyciąga uwagę Kapi. Kacper rusza za nim, by sprawdzić, dokąd prowadzi dźwięk.",
+                "Kapi usłyszał cichy plusk. Razem z Kacprem docierają do podziemnego jeziora ukrytego głęboko w kopalni.",
+                "Ogromna Komora Staszica robi wrażenie nawet na Kapi. Kacper rozgląda się i szuka ostatniego śladu.",
+                "Kapi złapał tajemniczy trop, a Kacper już wie, kto może czekać w kopalni. Pora spotkać legendarnego Skarbnika!"
+            ),
+            2 to listOf(
+                "Kapi wbiega na Planty, a Kacper rusza za nim zieloną trasą otaczającą stare miasto.",
+                "Na Rynku Głównym Kapi obserwuje gołębie, a Kacper wypatruje kolejnego punktu krakowskiej wyprawy.",
+                "Kacper zauważa Sukiennice, a Kapi prowadzi go między gwar i stragany w samym sercu Krakowa.",
+                "Rozlega się hejnał. Kapi nadstawia uszu, a Kacper od razu spogląda w stronę wież Kościoła Mariackiego.",
+                "Kapi przechodzi pod Bramą Floriańską jak prawdziwy odkrywca, a Kacper szuka śladów dawnego Krakowa.",
+                "Przed Barbakanem Kacper ogląda potężne mury, a Kapi sprawdza, czy za nimi nie kryje się kolejna zagadka.",
+                "Wzgórze Wawelskie jest coraz bliżej. Kapi przyspiesza, a Kacper wie, że dotarli do miejsca polskich królów.",
+                "Kapi nagle zatrzymuje się przy smoczej jamie. Czyżby wyczuł Smoka Wawelskiego? Kacper postanawia to sprawdzić.",
+                "Nad Wisłą Kapi łapie wiatr w uszy, a Kacper obserwuje Wawel z Bulwarów Wiślanych.",
+                "Kacper i Kapi wspinają się na Kopiec Krakusa. Na szczycie czeka na nich szeroki widok na Kraków."
+            ),
+            3 to listOf(
+                "W Kuźnicach Kacper poprawia plecak, a Kapi z energią rusza na pierwszy tatrzański szlak.",
+                "Kapi wyczuwa leśne zapachy w Dolinie Strążyskiej, a Kacper wypatruje górskich szczytów.",
+                "Na Rusinowej Polanie Kapi zatrzymuje się na chwilę, a Kacper podziwia panoramę Tatr.",
+                "Kacper dostrzega taflę Morskiego Oka. Kapi podbiega bliżej, ale wie, że górskie jezioro oglądamy z brzegu.",
+                "Szlak prowadzi coraz wyżej. Kapi dzielnie towarzyszy Kacprowi w wyprawie w stronę Gęsiej Szyi.",
+                "Na Hali Gąsienicowej Kacper rozgląda się po górach, a Kapi próbuje wychwycić każdy nowy zapach.",
+                "Kasprowy Wierch jest wysoko nad nimi. Kacper wskazuje szczyt, a Kapi jest gotowy na kolejne wyzwanie.",
+                "Kacper rozpoznaje charakterystyczny Giewont, a Kapi spogląda w tę samą stronę. Czas na górską zagadkę!",
+                "Kapi zauważa ruch wśród skał. Kacper przypomina, że tatrzańskie zwierzęta obserwujemy spokojnie i z daleka.",
+                "Przed nimi Dolina Pięciu Stawów. Kacper liczy jeziora, a Kapi z ciekawością poznaje finał tatrzańskiej wyprawy."
+            ),
+            4 to listOf(
+                "Na Piazza Navona Kapi rozgląda się między fontannami, a Kacper rozpoczyna rzymską wyprawę.",
+                "Kacper patrzy na ogromną kopułę Panteonu, a Kapi cierpliwie czeka, aż odkryją jego tajemnicę.",
+                "Szum wody prowadzi ich do Fontanny di Trevi. Kapi nadstawia uszu, a Kacper podziwia niezwykłe rzeźby.",
+                "Na Schodach Hiszpańskich Kacper wypatruje miasta z góry, a Kapi robi krótką przerwę przed dalszą drogą.",
+                "Koloseum pojawia się przed nimi. Kacper wyobraża sobie starożytny Rzym, a Kapi bada otoczenie.",
+                "W Forum Romanum Kacper szuka śladów dawnego miasta, a Kapi prowadzi go wśród historii sprzed wielu wieków.",
+                "Na Kapitolu Kapi zwalnia, a Kacper rozgląda się po jednym z najsłynniejszych rzymskich wzgórz.",
+                "Kacper dostrzega Zamek Świętego Anioła, a Kapi prowadzi go w stronę potężnej budowli nad Tybrem.",
+                "W Villa Borghese Kapi cieszy się zielenią, a Kacper odpoczywa przed ostatnim etapem rzymskiej wyprawy.",
+                "Na Circus Maximus Kacper wyobraża sobie pędzące rydwany. Kapi rusza wzdłuż dawnej areny po finałową wskazówkę."
+            ),
+            5 to listOf(
+                "Kacper spogląda na zegar przy Big Benie, a Kapi rozpoczyna swoją londyńską przygodę.",
+                "W Westminster Kapi maszeruje obok Kacpra, który wypatruje najważniejszych budynków brytyjskiej stolicy.",
+                "London Eye góruje nad Tamizą. Kacper patrzy w górę, a Kapi zastanawia się, dokąd prowadzi kolejny trop.",
+                "Przed Tower Bridge Kapi zatrzymuje się przy rzece, a Kacper podziwia charakterystyczne wieże mostu.",
+                "W Tower of London Kacper szuka królewskich historii, a Kapi sprawdza, czy nie czeka tu kolejna tajemnica.",
+                "British Museum jest pełne historii z całego świata. Kacper wybiera kierunek, a Kapi rusza tuż obok.",
+                "W Hyde Parku Kapi wreszcie może nacieszyć się zielenią, a Kacper przygotowuje się do dalszego zwiedzania.",
+                "Przed Buckingham Palace Kapi zatrzymuje się grzecznie, a Kacper wypatruje królewskich strażników.",
+                "W Natural History Museum Kacper chce zobaczyć wszystko, a Kapi szczególnie ciekawi się śladami dawnych zwierząt.",
+                "Nad Londynem widać kopułę Katedry św. Pawła. Kacper i Kapi ruszają tam po finał londyńskiej przygody."
+            ),
+            6 to listOf(
+                "Kacper staje przed ogromnym Duomo, a Kapi zadziera głowę, jakby też próbował zobaczyć szczyt katedry.",
+                "W Galleria Vittorio Emanuele II Kapi idzie przy nodze Kacpra, a wokół nich błyszczą eleganckie witryny.",
+                "Przy Zamku Sforzów Kacper wypatruje dawnych murów, a Kapi sprawdza drogę do następnej misji.",
+                "W dzielnicy Brera Kacper szuka sztuki i kolorów, a Kapi prowadzi go wąskimi uliczkami.",
+                "Nad kanałami Navigli Kapi obserwuje wodę, a Kacper odkrywa zupełnie inną stronę Mediolanu.",
+                "Przed La Scalą Kapi nadstawia uszu, jakby czekał na muzykę, a Kacper poznaje słynną operę.",
+                "W Muzeum Nauki i Techniki Kacper ma mnóstwo pytań, a Kapi pomaga mu odnaleźć kolejny punkt wyprawy.",
+                "W Porta Nuova nowoczesne budynki rosną wokół nich. Kacper patrzy w górę, a Kapi pewnie idzie dalej.",
+                "Przy San Siro Kacper myśli o wielkich meczach, a Kapi z energią rusza w stronę ostatniego celu.",
+                "Arco della Pace zamyka mediolańską trasę. Kacper i Kapi docierają pod monumentalny łuk po finałową wskazówkę."
+            ),
+            7 to listOf(
+                "W Valletcie Kacper czuje morską bryzę, a Kapi rozpoczyna ostatnią wyspiarską przygodę.",
+                "Z Upper Barrakka Gardens Kacper ogląda port, a Kapi wypatruje ruchu po drugiej stronie wody.",
+                "Kacper wskazuje Trzy Miasta, a Kapi rusza poznawać kolejne maltańskie uliczki.",
+                "W cichej Mdinie Kapi zwalnia kroku, a Kacper odkrywa wąskie uliczki dawnej stolicy.",
+                "W Rabacie Kacper szuka śladów historii, a Kapi prowadzi go do kolejnego punktu wyprawy.",
+                "Przy Blue Grotto Kacper zachwyca się kolorem morza, a Kapi obserwuje fale z bezpiecznego miejsca.",
+                "W Marsaxlokk Kapi węszy morskie zapachy, a Kacper ogląda kolorowe łodzie w porcie.",
+                "Na Gozo Kacper i Kapi ruszają przed siebie, gotowi odkrywać spokojniejszą stronę Malty.",
+                "Błękitna woda wokół Comino przyciąga wzrok Kacpra. Kapi wie, że do finału został już tylko jeden etap.",
+                "Przed świątyniami Ħaġar Qim Kacper patrzy na ogromne kamienie, a Kapi kończy z nim wielką podróż przez siedem światów."
             )
-            2 -> listOf(
-                "Krakowski Rynek Główny należy do największych średniowiecznych rynków Europy.",
-                "Legenda o Smoku Wawelskim jest jedną z najbardziej znanych polskich legend.",
-                "Wawel przez wieki był siedzibą polskich królów."
-            )
-            3 -> listOf(
-                "Tatry są najwyższymi górami w Polsce.",
-                "Morskie Oko jest jednym z najbardziej znanych tatrzańskich jezior.",
-                "Kozica i świstak to zwierzęta kojarzone z Tatrami."
-            )
-            4 -> listOf(
-                "Rzym nazywany jest Wiecznym Miastem.",
-                "Koloseum było ogromnym amfiteatrem starożytnego Rzymu.",
-                "Fontanna di Trevi jest jedną z najsłynniejszych fontann świata."
-            )
-            5 -> listOf(
-                "Przez Londyn przepływa Tamiza.",
-                "Tower Bridge to jeden z najbardziej rozpoznawalnych mostów Londynu.",
-                "Big Ben to potoczna nazwa wielkiego dzwonu przy Pałacu Westminsterskim."
-            )
-            6 -> listOf(
-                "Mediolan jest jednym z najważniejszych miast północnych Włoch.",
-                "Duomo di Milano to ogromna gotycka katedra w centrum miasta.",
-                "La Scala jest jednym z najsłynniejszych teatrów operowych świata."
-            )
-            else -> listOf(
-                "Malta leży na Morzu Śródziemnym.",
-                "Valletta jest stolicą Malty.",
-                "Mdina nazywana jest Cichym Miastem."
-            )
-        }
-        val factsEn = when (stage.worldId) {
-            1 -> listOf("Wieliczka has been connected with salt mining for centuries.", "Underground there are chambers, lakes and chapels carved in salt.", "St. Kinga's Chapel is one of the mine's most famous places.")
-            2 -> listOf("Krakow's Main Market Square is one of Europe's largest medieval squares.", "The Wawel Dragon is one of Poland's best-known legends.", "Wawel Castle was home to Polish kings for centuries.")
-            3 -> listOf("The Tatras are the highest mountains in Poland.", "Morskie Oko is one of the best-known Tatra lakes.", "Chamois and marmots are strongly associated with the Tatras.")
-            4 -> listOf("Rome is known as the Eternal City.", "The Colosseum was a huge amphitheatre in ancient Rome.", "Trevi Fountain is one of the world's most famous fountains.")
-            5 -> listOf("The River Thames flows through London.", "Tower Bridge is one of London's most recognisable bridges.", "Big Ben is the nickname of the great bell at the Palace of Westminster.")
-            6 -> listOf("Milan is one of northern Italy's most important cities.", "Milan Cathedral is a huge Gothic cathedral in the city centre.", "La Scala is one of the world's most famous opera houses.")
-            else -> listOf("Malta lies in the Mediterranean Sea.", "Valletta is the capital of Malta.", "Mdina is known as the Silent City.")
-        }
-        val factIndex = (stage.number - 1) % facts.size
+        )
+        val text = adventures[stage.worldId]?.getOrNull(stage.number - 1)
+            ?: "Kacper i Kapi ruszają do kolejnego miejsca."
         return StoryBeat(
-            titlePl = "Ślad prowadzi do: ${stage.namePl}",
-            titleEn = "The trail leads to: ${stage.nameEn}",
-            textPl = "Kapi złapał nowy trop! Kacper sprawdza mapę i ruszają dalej w $worldNamePl. Rozwiąż zadania, aby odkryć kolejne miejsce.",
-            textEn = "Kapi found a new clue! Kacper checks the map and they continue through $worldNameEn. Solve the tasks to discover the next place.",
-            factPl = facts[factIndex],
-            factEn = factsEn[factIndex],
+            titlePl = "Przygoda: \${stage.namePl}",
+            titleEn = "Adventure: \${stage.nameEn}",
+            textPl = "$text Rozwiąż zadania i zdobądź kolejny punkt wyprawy.",
+            textEn = "Kacper and Kapi continue their adventure at \${stage.nameEn}. Solve the tasks to discover what comes next.",
+            factPl = AttractionContent.forStage(stage)?.factPl ?: "Każde miejsce na trasie kryje ciekawą historię.",
+            factEn = AttractionContent.forStage(stage)?.factEn ?: "Every place on the route has an interesting story.",
             emoji = when (stage.worldId) { 1 -> "🧂"; 2 -> "🐉"; 3 -> "🏔️"; 4 -> "🏛️"; 5 -> "🚌"; 6 -> "🎨"; else -> "⛵" }
         )
     }
