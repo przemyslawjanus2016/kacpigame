@@ -70,4 +70,10 @@ class ContentSanityTest {
             fact.optionsPl.size == fact.optionsEn.size && fact.correctIndex in fact.optionsPl.indices
         })
     }
+    @Test
+    fun kapiTrailWordingUsesZlapalTrop() {
+        val text = GameContent.story(GameContent.stage(1, 1)).textPl
+        assertTrue(text.contains("Kapi złapał trop!"))
+        assertTrue(!text.contains("Kapi znalazł trop"))
+    }
 }
