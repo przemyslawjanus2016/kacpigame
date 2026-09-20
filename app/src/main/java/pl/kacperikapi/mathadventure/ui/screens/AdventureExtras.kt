@@ -39,6 +39,9 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
     val world = GameContent.world(stage.worldId)
     val story = GameContent.story(stage)
     val attraction = AttractionContent.forStage(stage)
+    val stagePhotoRes = remember(stage.id) {
+        context.resources.getIdentifier(stage.id, "drawable", context.packageName).takeIf { it != 0 }
+    }
     var resolvedAttribution by remember(stage.id) { mutableStateOf<CommonsPhotoAttribution?>(null) }
     var ttsReady by remember { mutableStateOf(false) }
     val ttsHolder = remember { mutableStateOf<TextToSpeech?>(null) }
@@ -108,14 +111,26 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
 
             ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 900.dp)) {
                 if (attraction != null) {
-                    WikimediaPhoto(
-                        fileName = attraction.photoFileName,
-                        searchQuery = attraction.photoSearchQuery,
-                        contentDescription = stage.name(language),
-                        fallbackRes = world.heroArtRes,
-                        modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                        onAttribution = { resolvedAttribution = it }
-                    )
+                    if (stagePhotoRes != null) {
+                        Image(
+                            painter = painterResource(stagePhotoRes),
+                            contentDescription = stage.name(language),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(16f / 9f)
+                                .clip(RoundedCornerShape(20.dp))
+                        )
+                    } else {
+                        WikimediaPhoto(
+                            fileName = attraction.photoFileName,
+                            searchQuery = attraction.photoSearchQuery,
+                            contentDescription = stage.name(language),
+                            fallbackRes = world.heroArtRes,
+                            modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
+                            onAttribution = { resolvedAttribution = it }
+                        )
+                    }
                     Spacer(Modifier.height(7.dp))
                     Text(
                         resolvedAttribution?.credit(language) ?: attraction.credit(language),

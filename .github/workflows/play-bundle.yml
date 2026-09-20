@@ -2,7 +2,7 @@ name: Build Google Play AAB
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "release-v0.5.9" ]
   workflow_dispatch:
 
 permissions:
@@ -64,13 +64,13 @@ jobs:
           mkdir -p dist
           AAB_PATH="$(find app/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' | head -n 1)"
           test -n "$AAB_PATH" || { echo "Release AAB not found"; exit 1; }
-          cp "$AAB_PATH" "dist/KacperKapi-Play-v0.5.0.aab"
-          jarsigner -verify "dist/KacperKapi-Play-v0.5.0.aab"
+          cp "$AAB_PATH" "dist/KacperKapi-Play-v0.5.9.aab"
+          jarsigner -verify "dist/KacperKapi-Play-v0.5.9.aab"
 
       - name: Upload Google Play AAB
         uses: actions/upload-artifact@v4
         with:
-          name: KacperKapi-Play-v0.5.0
-          path: dist/KacperKapi-Play-v0.5.0.aab
+          name: KacperKapi-Play-v0.5.9
+          path: dist/KacperKapi-Play-v0.5.9.aab
           if-no-files-found: error
           retention-days: 14
