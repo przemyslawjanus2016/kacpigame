@@ -4,13 +4,13 @@ from pathlib import Path
 from PIL import Image, ImageTk, ImageOps
 
 WORLDS = {
-"Wieliczka":["Rynek Górny","Zamek Żupny","Tężnia Solankowa","Szyb Daniłowicza","Komora Mikołaja Kopernika","Kaplica św. Kingi","Komora Weimar","Podziemne jezioro","Komora Staszica","Skarb Wieliczki"],
-"Kraków":["Planty","Rynek Główny","Sukiennice","Kościół Mariacki","Brama Floriańska","Barbakan","Wawel","Smok Wawelski","Bulwary Wiślane","Mistrz Krakowa"],
-"Tatry":["Kuźnice","Dolina Strążyska","Rusinowa Polana","Morskie Oko","Gęsia Szyja","Hala Gąsienicowa","Kasprowy Wierch","Giewont","Tatrzańska fauna","Górski Odkrywca"],
-"Rzym":["Piazza Navona","Panteon","Fontanna di Trevi","Schody Hiszpańskie","Koloseum","Forum Romanum","Kapitol","Zamek Świętego Anioła","Villa Borghese","Mistrz Rzymu"],
-"Londyn":["Big Ben","Westminster","London Eye","Tower Bridge","Tower of London","British Museum","Hyde Park","Buckingham Palace","Natural History Museum","London Explorer"],
-"Mediolan":["Duomo","Galleria Vittorio Emanuele II","Zamek Sforzów","Brera","Navigli","La Scala","Muzeum Nauki i Techniki","Porta Nuova","San Siro","Mistrz Mediolanu"],
-"Malta":["Valletta","Upper Barrakka Gardens","Trzy Miasta","Mdina","Rabat","Blue Grotto","Marsaxlokk","Gozo","Comino","Mistrz Przygody"]}
+"Wieliczka":["Rynek Górny","Zamek Żupny","Tężnia Solankowa","Szyb Daniłowicza","Komora Mikołaja Kopernika","Kaplica św. Kingi","Komora Weimar","Podziemne jezioro","Komora Staszica","Skarbnik"],
+"Kraków":["Planty","Rynek Główny","Sukiennice","Kościół Mariacki","Brama Floriańska","Barbakan","Wawel","Smok Wawelski","Bulwary Wiślane","Kopiec Krakusa"],
+"Tatry":["Kuźnice","Dolina Strążyska","Rusinowa Polana","Morskie Oko","Gęsia Szyja","Hala Gąsienicowa","Kasprowy Wierch","Giewont","Tatrzańska fauna","Dolina Pięciu Stawów"],
+"Rzym":["Piazza Navona","Panteon","Fontanna di Trevi","Schody Hiszpańskie","Koloseum","Forum Romanum","Kapitol","Zamek Świętego Anioła","Villa Borghese","Circus Maximus"],
+"Londyn":["Big Ben","Westminster","London Eye","Tower Bridge","Tower of London","British Museum","Hyde Park","Buckingham Palace","Natural History Museum","Katedra św. Pawła"],
+"Mediolan":["Duomo","Galleria Vittorio Emanuele II","Zamek Sforzów","Brera","Navigli","La Scala","Muzeum Nauki i Techniki","Porta Nuova","San Siro","Arco della Pace"],
+"Malta":["Valletta","Upper Barrakka Gardens","Trzy Miasta","Mdina","Rabat","Blue Grotto","Marsaxlokk","Gozo","Comino","Świątynie Ħaġar Qim"]}
 
 def safe(s):
     import unicodedata
