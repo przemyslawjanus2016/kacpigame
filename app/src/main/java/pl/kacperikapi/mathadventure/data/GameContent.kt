@@ -258,7 +258,7 @@ object GameContent {
         return StoryBeat(
             titlePl = "Ślad prowadzi do: ${stage.namePl}",
             titleEn = "The trail leads to: ${stage.nameEn}",
-            textPl = "Kapi znalazł nowy trop! Kacper sprawdza mapę i ruszają dalej przez $worldNamePl. Rozwiąż zadania, aby odkryć kolejne miejsce.",
+            textPl = "Kapi złapał trop! Kacper sprawdza mapę i ruszają dalej przez $worldNamePl. Rozwiąż zadania, aby odkryć kolejne miejsce.",
             textEn = "Kapi found a new clue! Kacper checks the map and they continue through $worldNameEn. Solve the tasks to discover the next place.",
             factPl = facts[factIndex],
             factEn = factsEn[factIndex],
