@@ -1,0 +1,32 @@
+name: Build Attraction Photo Tool EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "release-v0.5.9" ]
+    paths:
+      - "tools/AttractionPhotoTool/**"
+      - ".github/workflows/attraction-photo-tool.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  windows-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install builder
+        run: pip install pillow pyinstaller
+      - name: Build EXE
+        run: pyinstaller --noconfirm --onefile --windowed --name KacperKapi-Zdjecia-Atrakcji tools/AttractionPhotoTool/attraction_photo_tool.py
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: KacperKapi-Zdjecia-Atrakcji-Windows
+          path: dist/KacperKapi-Zdjecia-Atrakcji.exe
+          if-no-files-found: error
+          retention-days: 30
