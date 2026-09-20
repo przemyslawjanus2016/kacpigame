@@ -58,7 +58,7 @@ object GameContent {
                 "Komora Weimar" to "Weimar Chamber",
                 "Podziemne jezioro" to "Underground Lake",
                 "Komora Staszica" to "Staszic Chamber",
-                "Skarb Wieliczki" to "Wieliczka Treasure"
+                "Skarbnik" to "Treasurer Spirit"
             ))
         ),
         WorldDefinition(
@@ -79,7 +79,7 @@ object GameContent {
                 "Wawel" to "Wawel Castle",
                 "Smok Wawelski" to "Wawel Dragon",
                 "Bulwary Wiślane" to "Vistula Boulevards",
-                "Mistrz Krakowa" to "Krakow Master"
+                "Kopiec Krakusa" to "Krakus Mound"
             ))
         ),
         WorldDefinition(
@@ -100,7 +100,7 @@ object GameContent {
                 "Kasprowy Wierch" to "Kasprowy Wierch",
                 "Giewont" to "Giewont",
                 "Tatrzańska fauna" to "Tatra Wildlife",
-                "Górski Odkrywca" to "Mountain Explorer"
+                "Dolina Pięciu Stawów" to "Five Polish Ponds Valley"
             ))
         ),
         WorldDefinition(
@@ -121,7 +121,7 @@ object GameContent {
                 "Kapitol" to "Capitoline Hill",
                 "Zamek Świętego Anioła" to "Castel Sant'Angelo",
                 "Villa Borghese" to "Villa Borghese",
-                "Mistrz Rzymu" to "Rome Master"
+                "Circus Maximus" to "Circus Maximus"
             ))
         ),
         WorldDefinition(
@@ -142,7 +142,7 @@ object GameContent {
                 "Hyde Park" to "Hyde Park",
                 "Buckingham Palace" to "Buckingham Palace",
                 "Natural History Museum" to "Natural History Museum",
-                "London Explorer" to "London Explorer"
+                "Katedra św. Pawła" to "St Paul’s Cathedral"
             ))
         ),
         WorldDefinition(
@@ -163,7 +163,7 @@ object GameContent {
                 "Muzeum Nauki i Techniki" to "Science and Technology Museum",
                 "Porta Nuova" to "Porta Nuova",
                 "San Siro" to "San Siro",
-                "Mistrz Mediolanu" to "Milan Master"
+                "Arco della Pace" to "Arco della Pace"
             ))
         ),
         WorldDefinition(
@@ -184,7 +184,7 @@ object GameContent {
                 "Marsaxlokk" to "Marsaxlokk",
                 "Gozo" to "Gozo",
                 "Comino" to "Comino",
-                "Mistrz Przygody" to "Adventure Master"
+                "Świątynie Ħaġar Qim" to "Ħaġar Qim Temples"
             ))
         )
     )
