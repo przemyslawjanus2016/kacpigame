@@ -66,8 +66,7 @@ class MainActivity : ComponentActivity() {
                 GameApp(
                     store = store,
                     billingManager = billingManager,
-                    activity = this@MainActivity,
-                    onLanguageChanged = { recreate() }
+                    activity = this@MainActivity
                 )
             }
         }
@@ -141,8 +140,7 @@ private sealed interface Screen {
 private fun GameApp(
     store: ProgressStore,
     billingManager: PremiumBillingManager,
-    activity: Activity,
-    onLanguageChanged: () -> Unit
+    activity: Activity
 ) {
     var screen by remember { mutableStateOf<Screen>(Screen.Splash) }
     var progress by remember { mutableStateOf(store.load()) }
@@ -157,12 +155,6 @@ private fun GameApp(
     fun persist(newProgress: GameProgress) {
         progress = newProgress
         store.save(newProgress)
-    }
-
-    fun switchLanguage() {
-        val next = AppLanguages.next(store.loadLanguage())
-        store.saveLanguage(next)
-        onLanguageChanged()
     }
 
     BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash) {
@@ -224,8 +216,7 @@ private fun GameApp(
             onPassport = { screen = Screen.Passport },
             onRewards = { screen = Screen.Rewards },
             onParent = { screen = Screen.Parent },
-            onSettings = { screen = Screen.Settings },
-            onLanguage = ::switchLanguage
+            onSettings = { screen = Screen.Settings }
         )
         is Screen.Map -> {
             val safeWorldId = current.worldId.coerceIn(1, GameContent.worlds.size)
@@ -379,7 +370,6 @@ private fun GameApp(
             soundEnabled = soundEnabled,
             onNarratorChanged = { narratorEnabled = it; store.saveNarratorEnabled(it) },
             onSoundChanged = { soundEnabled = it; store.saveSoundEnabled(it) },
-            onLanguage = ::switchLanguage,
             onResetAll = {
                 progress = store.resetAllProgress()
                 selectedStages = GameContent.worlds.associate { it.id to 1 }
