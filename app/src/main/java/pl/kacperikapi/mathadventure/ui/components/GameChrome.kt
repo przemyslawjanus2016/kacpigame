@@ -126,7 +126,12 @@ fun GameTitle(compact: Boolean = false) {
 }
 
 @Composable
-fun PrimaryGameButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PrimaryGameButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    textSizeSp: Int = 24
+) {
     Button(
         onClick = onClick,
         modifier = modifier.heightIn(min = 58.dp),
@@ -136,7 +141,7 @@ fun PrimaryGameButton(text: String, onClick: () -> Unit, modifier: Modifier = Mo
     ) {
         Text("▶", fontSize = 24.sp)
         Spacer(Modifier.width(10.dp))
-        Text(text, fontSize = 24.sp, fontWeight = FontWeight.Black)
+        Text(text, fontSize = textSizeSp.sp, fontWeight = FontWeight.Black)
     }
 }
 
