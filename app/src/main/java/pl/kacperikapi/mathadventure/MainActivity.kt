@@ -34,6 +34,7 @@ import pl.kacperikapi.mathadventure.billing.PremiumBillingManager
 import pl.kacperikapi.mathadventure.data.*
 import pl.kacperikapi.mathadventure.ui.screens.*
 import pl.kacperikapi.mathadventure.ui.theme.*
+import pl.kacperikapi.mathadventure.update.PlayUpdateChecker
 import java.time.LocalDate
 import java.util.Locale
 
@@ -151,6 +152,16 @@ private fun GameApp(
         mutableStateOf(GameContent.worlds.associate { it.id to progress.availableMaxStage(it.id).coerceAtLeast(1) })
     }
     val billingState by billingManager.state.collectAsState()
+    var updateStatus by remember { mutableStateOf<PlayUpdateChecker.Status>(PlayUpdateChecker.Status.Checking) }
+    var updatePromptDismissed by remember { mutableStateOf(false) }
+
+    fun checkForPlayUpdate() {
+        PlayUpdateChecker.check(activity) { updateStatus = it }
+    }
+
+    LaunchedEffect(Unit) {
+        checkForPlayUpdate()
+    }
 
     fun persist(newProgress: GameProgress) {
         progress = newProgress
@@ -189,6 +200,24 @@ private fun GameApp(
             onBack = { screen = Screen.Worlds }
         )
         return
+    }
+
+    if (screen == Screen.Worlds && updateStatus is PlayUpdateChecker.Status.Available && !updatePromptDismissed) {
+        AlertDialog(
+            onDismissRequest = { updatePromptDismissed = true },
+            title = { Text("Dostępna aktualizacja", fontWeight = FontWeight.Black) },
+            text = { Text("W Google Play jest dostępna nowsza wersja gry.") },
+            confirmButton = {
+                Button(onClick = { PlayUpdateChecker.openPlayStore(activity) }) {
+                    Text("Aktualizuj")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { updatePromptDismissed = true }) {
+                    Text("Później")
+                }
+            }
+        )
     }
 
     when (val current = screen) {
@@ -368,6 +397,9 @@ private fun GameApp(
         Screen.Settings -> SettingsScreen(
             narratorEnabled = narratorEnabled,
             soundEnabled = soundEnabled,
+            updateStatus = updateStatus,
+            onCheckUpdate = ::checkForPlayUpdate,
+            onOpenPlayStore = { PlayUpdateChecker.openPlayStore(activity) },
             onNarratorChanged = { narratorEnabled = it; store.saveNarratorEnabled(it) },
             onSoundChanged = { soundEnabled = it; store.saveSoundEnabled(it) },
             onResetAll = {
