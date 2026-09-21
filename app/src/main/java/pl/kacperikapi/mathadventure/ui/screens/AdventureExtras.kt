@@ -34,7 +34,6 @@ import java.time.LocalDate
 
 @Composable
 fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
-    val language = AppLanguages.normalize(LocalConfiguration.current.locales[0].language)
     val context = LocalContext.current
     val world = GameContent.world(stage.worldId)
     val story = GameContent.story(stage)
@@ -287,7 +286,6 @@ fun SettingsScreen(
     soundEnabled: Boolean,
     onNarratorChanged: (Boolean) -> Unit,
     onSoundChanged: (Boolean) -> Unit,
-    onLanguage: () -> Unit,
     onResetAll: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -323,18 +321,6 @@ fun SettingsScreen(
                 SettingToggle("🔊", stringResource(R.string.narrator), stringResource(R.string.narrator_desc), narratorEnabled, onNarratorChanged)
                 HorizontalDivider(color = WoodBrown.copy(.15f))
                 SettingToggle("🎵", stringResource(R.string.sound_effects), stringResource(R.string.sound_effects_desc), soundEnabled, onSoundChanged)
-                HorizontalDivider(color = WoodBrown.copy(.15f))
-                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("🌐", fontSize = 25.sp)
-                    Spacer(Modifier.width(10.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.language), fontWeight = FontWeight.Black)
-                        Text(stringResource(R.string.language_desc), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
-                    }
-                    OutlinedButton(onClick = onLanguage) {
-                        Text("${AppLanguages.profile(language).countryFlag} ${AppLanguages.label(language)} ›", fontWeight = FontWeight.Black)
-                    }
-                }
                 Spacer(Modifier.height(8.dp))
                 Surface(shape = RoundedCornerShape(16.dp), color = BrightGreen.copy(.11f)) {
                     Text(stringResource(R.string.offline_safe_note), modifier = Modifier.padding(12.dp), color = Ink)
