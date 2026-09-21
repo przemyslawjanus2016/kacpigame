@@ -30,6 +30,7 @@ import pl.kacperikapi.mathadventure.ui.components.ParchmentCard
 import pl.kacperikapi.mathadventure.ui.components.PrimaryGameButton
 import pl.kacperikapi.mathadventure.ui.components.WikimediaPhoto
 import pl.kacperikapi.mathadventure.ui.theme.*
+import pl.kacperikapi.mathadventure.update.PlayUpdateChecker
 import java.time.LocalDate
 
 @Composable
@@ -285,6 +286,9 @@ fun DailyMissionIntroScreen(progress: GameProgress, onStart: () -> Unit, onBack:
 fun SettingsScreen(
     narratorEnabled: Boolean,
     soundEnabled: Boolean,
+    updateStatus: PlayUpdateChecker.Status,
+    onCheckUpdate: () -> Unit,
+    onOpenPlayStore: () -> Unit,
     onNarratorChanged: (Boolean) -> Unit,
     onSoundChanged: (Boolean) -> Unit,
     onResetAll: () -> Unit,
@@ -331,11 +335,42 @@ fun SettingsScreen(
             Spacer(Modifier.height(14.dp))
             ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 650.dp)) {
                 Text("⬆️ ${stringResource(R.string.updates)}", fontSize = 20.sp, fontWeight = FontWeight.Black, color = WoodBrown)
-                Text(stringResource(R.string.updates_desc), color = Ink)
-                Spacer(Modifier.height(5.dp))
                 Text(stringResource(R.string.current_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodySmall, color = WoodBrown)
                 Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.github_release_note), style = MaterialTheme.typography.labelSmall, color = WoodBrown)
+                when (updateStatus) {
+                    PlayUpdateChecker.Status.Checking -> Text("Sprawdzanie aktualizacji…", color = Ink)
+                    is PlayUpdateChecker.Status.Available -> {
+                        Surface(shape = RoundedCornerShape(14.dp), color = BrightGreen.copy(.16f)) {
+                            Text(
+                                "✅ Dostępna jest nowsza wersja w Google Play.",
+                                modifier = Modifier.fillMaxWidth().padding(11.dp),
+                                color = AdventureGreen,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = onOpenPlayStore,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Aktualizuj w Google Play", fontWeight = FontWeight.Black)
+                        }
+                    }
+                    PlayUpdateChecker.Status.UpToDate -> Text("Masz najnowszą wersję.", color = AdventureGreen, fontWeight = FontWeight.Bold)
+                    PlayUpdateChecker.Status.Unavailable -> Text(
+                        "Nie udało się sprawdzić aktualizacji. Sprawdź połączenie z internetem i czy aplikacja została zainstalowana z Google Play.",
+                        color = WoodBrown
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onCheckUpdate,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Sprawdź aktualizację", fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(Modifier.height(14.dp))
