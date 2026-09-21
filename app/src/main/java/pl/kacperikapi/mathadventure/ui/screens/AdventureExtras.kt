@@ -35,6 +35,7 @@ import java.time.LocalDate
 @Composable
 fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
+    val language = "pl"
     val world = GameContent.world(stage.worldId)
     val story = GameContent.story(stage)
     val attraction = AttractionContent.forStage(stage)
