@@ -4,53 +4,67 @@ import android.content.Context
 
 class ProgressStore(context: Context) {
     private val appContext = context.applicationContext
-    private val prefs = appContext.getSharedPreferences("kacper_kapi_progress", Context.MODE_PRIVATE)
+    private val profileStore = PlayerProfileStore(appContext)
+    private val globalPrefs = appContext.getSharedPreferences(
+        PlayerProfileStore.LEGACY_PROGRESS_PREFS,
+        Context.MODE_PRIVATE
+    )
 
-    fun load(): GameProgress = runCatching { loadInternal() }.getOrElse {
-        val language = loadLanguage()
-        val narrator = loadNarratorEnabled()
-        val sound = loadSoundEnabled()
-        prefs.edit().clear()
-            .putString("language", language)
-            .putBoolean("narrator", narrator)
-            .putBoolean("sound", sound)
-            .apply()
-        GameProgress()
+    fun profiles(): List<PlayerProfile> = profileStore.profiles()
+    fun activeProfile(): PlayerProfile? = profileStore.activeProfile()
+    fun activeProfileId(): String? = profileStore.activeProfileId()
+    fun addProfile(name: String): PlayerProfile = profileStore.add(name)
+    fun selectProfile(profileId: String) = profileStore.select(profileId)
+    fun deleteProfile(profileId: String) = profileStore.delete(profileId)
+
+    private fun prefs() = activeProfileId()?.let {
+        appContext.getSharedPreferences(PlayerProfileStore.progressPrefsName(it), Context.MODE_PRIVATE)
     }
 
-    private fun loadInternal(): GameProgress {
+    fun load(): GameProgress {
+        val prefs = prefs() ?: return GameProgress()
+        return runCatching { loadInternal(prefs) }.getOrElse {
+            prefs.edit().clear().apply()
+            GameProgress()
+        }
+    }
+
+    private fun loadInternal(prefs: android.content.SharedPreferences): GameProgress {
         val stats = LearningCategory.entries.associateWith { category ->
             val key = category.name.lowercase()
             CategoryStats(
-                solved = safeInt("solved_$key", 0),
-                correct = safeInt("correct_$key", 0)
+                solved = safeInt(prefs, "solved_$key", 0),
+                correct = safeInt(prefs, "correct_$key", 0)
             )
         }
-        val maxStage = decodeIntMap(safeString("max_stage_by_world", null))
+
+        val maxStage = decodeIntMap(safeString(prefs, "max_stage_by_world", null))
             .ifEmpty {
-                val old = safeInt("max_level", 1).coerceIn(1, 10)
+                val old = safeInt(prefs, "max_level", 1).coerceIn(1, GameRules.STAGES_PER_WORLD)
                 mapOf(1 to old)
             }
+
         return GameProgress(
-            coins = safeInt("coins", 0).coerceAtLeast(0),
-            stars = safeInt("stars", 0).coerceAtLeast(0),
-            unlockedWorldId = safeInt("unlocked_world", 1).coerceIn(1, GameContent.worlds.size),
-            maxStageByWorld = maxStage.mapValues { (_, v) -> v.coerceIn(0, 10) },
-            completedStageIds = safeString("completed_stages", "")
+            coins = safeInt(prefs, "coins", 0).coerceAtLeast(0),
+            stars = safeInt(prefs, "stars", 0).coerceAtLeast(0),
+            unlockedWorldId = safeInt(prefs, "unlocked_world", 1).coerceIn(1, GameContent.worlds.size),
+            maxStageByWorld = maxStage.mapValues { (_, v) -> v.coerceIn(0, GameRules.STAGES_PER_WORLD) },
+            completedStageIds = safeString(prefs, "completed_stages", "")
                 .orEmpty().split(',').filter { it.isNotBlank() }.toSet(),
-            starsByStage = decodeStringIntMap(safeString("stage_stars", null))
+            starsByStage = decodeStringIntMap(safeString(prefs, "stage_stars", null))
                 .mapValues { (_, v) -> v.coerceIn(0, 3) },
-            solvedTasks = safeInt("solved", 0).coerceAtLeast(0),
-            correctTasks = safeInt("correct", 0).coerceAtLeast(0),
+            solvedTasks = safeInt(prefs, "solved", 0).coerceAtLeast(0),
+            correctTasks = safeInt(prefs, "correct", 0).coerceAtLeast(0),
             categoryStats = stats,
-            dailyStreak = safeInt("daily_streak", 0).coerceAtLeast(0),
-            dailyLastCompletedDate = safeString("daily_last_date", "").orEmpty(),
-            totalDailyMissions = safeInt("daily_total", 0).coerceAtLeast(0),
-            collectedPostcards = decodeIntSet(safeString("postcards", null))
+            dailyStreak = safeInt(prefs, "daily_streak", 0).coerceAtLeast(0),
+            dailyLastCompletedDate = safeString(prefs, "daily_last_date", "").orEmpty(),
+            totalDailyMissions = safeInt(prefs, "daily_total", 0).coerceAtLeast(0),
+            collectedPostcards = decodeIntSet(safeString(prefs, "postcards", null))
         )
     }
 
     fun save(progress: GameProgress) {
+        val prefs = prefs() ?: return
         val editor = prefs.edit()
             .putInt("coins", progress.coins)
             .putInt("stars", progress.stars)
@@ -76,76 +90,78 @@ class ProgressStore(context: Context) {
     fun loadLanguage(): String = "pl"
 
     fun saveLanguage(tag: String) {
-        prefs.edit().putString("language", "pl").apply()
+        globalPrefs.edit().putString("language", "pl").apply()
     }
 
-    fun loadNarratorEnabled(): Boolean = safeBoolean("narrator", true)
-    fun saveNarratorEnabled(enabled: Boolean) = prefs.edit().putBoolean("narrator", enabled).apply()
-    fun loadSoundEnabled(): Boolean = safeBoolean("sound", true)
-    fun saveSoundEnabled(enabled: Boolean) = prefs.edit().putBoolean("sound", enabled).apply()
+    fun loadNarratorEnabled(): Boolean = globalSafeBoolean("narrator", true)
+    fun saveNarratorEnabled(enabled: Boolean) =
+        globalPrefs.edit().putBoolean("narrator", enabled).apply()
 
-    /**
-     * Starts the adventure from zero while keeping UI preferences.
-     * Also clears anti-repeat history for a genuinely fresh playthrough.
-     */
+    fun loadSoundEnabled(): Boolean = globalSafeBoolean("sound", true)
+    fun saveSoundEnabled(enabled: Boolean) =
+        globalPrefs.edit().putBoolean("sound", enabled).apply()
+
     fun resetAllProgress(): GameProgress {
-        val language = loadLanguage()
-        val narrator = loadNarratorEnabled()
-        val sound = loadSoundEnabled()
-        prefs.edit().clear()
-            .putString("language", language)
-            .putBoolean("narrator", narrator)
-            .putBoolean("sound", sound)
-            .commit()
+        prefs()?.edit()?.clear()?.commit()
         QuestionHistoryStore(appContext).clear()
-        runCatching {
-            java.io.File(appContext.filesDir, "attraction_photos").deleteRecursively()
-        }
         return GameProgress()
     }
 
-    private fun safeInt(key: String, default: Int): Int = try {
+    private fun safeInt(
+        prefs: android.content.SharedPreferences,
+        key: String,
+        default: Int
+    ): Int = try {
         prefs.getInt(key, default)
     } catch (_: ClassCastException) {
-        prefs.edit().remove(key).apply(); default
+        prefs.edit().remove(key).apply()
+        default
     }
 
-    private fun safeBoolean(key: String, default: Boolean): Boolean = try {
-        prefs.getBoolean(key, default)
-    } catch (_: ClassCastException) {
-        prefs.edit().remove(key).apply(); default
-    }
-
-    private fun safeString(key: String, default: String?): String? = try {
+    private fun safeString(
+        prefs: android.content.SharedPreferences,
+        key: String,
+        default: String?
+    ): String? = try {
         prefs.getString(key, default)
     } catch (_: ClassCastException) {
-        prefs.edit().remove(key).apply(); default
+        prefs.edit().remove(key).apply()
+        default
     }
 
-    private fun encodeIntMap(map: Map<Int, Int>): String = map.entries.joinToString(";") { "${it.key}:${it.value}" }
+    private fun globalSafeBoolean(key: String, default: Boolean): Boolean = try {
+        globalPrefs.getBoolean(key, default)
+    } catch (_: ClassCastException) {
+        globalPrefs.edit().remove(key).apply()
+        default
+    }
 
-    private fun decodeIntMap(raw: String?): Map<Int, Int> = raw.orEmpty().split(';').mapNotNull { item ->
-        val p = item.split(':')
-        if (p.size != 2) null else {
-            val k = p[0].toIntOrNull()
-            val v = p[1].toIntOrNull()
-            if (k == null || v == null) null else k to v
-        }
-    }.toMap()
+    private fun encodeIntMap(map: Map<Int, Int>): String =
+        map.entries.joinToString(";") { "${it.key}:${it.value}" }
 
-    private fun encodeStringIntMap(map: Map<String, Int>): String = map.entries.joinToString(";") { "${it.key}:${it.value}" }
+    private fun decodeIntMap(raw: String?): Map<Int, Int> =
+        raw.orEmpty().split(';').mapNotNull { item ->
+            val p = item.split(':')
+            if (p.size != 2) null else {
+                val k = p[0].toIntOrNull()
+                val v = p[1].toIntOrNull()
+                if (k == null || v == null) null else k to v
+            }
+        }.toMap()
 
-    private fun decodeStringIntMap(raw: String?): Map<String, Int> = raw.orEmpty().split(';').mapNotNull { item ->
-        val index = item.lastIndexOf(':')
-        if (index <= 0) null else {
-            val k = item.substring(0, index)
-            val v = item.substring(index + 1).toIntOrNull()
-            if (v == null) null else k to v
-        }
-    }.toMap()
+    private fun encodeStringIntMap(map: Map<String, Int>): String =
+        map.entries.joinToString(";") { "${it.key}:${it.value}" }
 
-    private fun decodeIntSet(raw: String?): Set<Int> = raw.orEmpty()
-        .split(',')
-        .mapNotNull { it.toIntOrNull() }
-        .toSet()
+    private fun decodeStringIntMap(raw: String?): Map<String, Int> =
+        raw.orEmpty().split(';').mapNotNull { item ->
+            val index = item.lastIndexOf(':')
+            if (index <= 0) null else {
+                val k = item.substring(0, index)
+                val v = item.substring(index + 1).toIntOrNull()
+                if (v == null) null else k to v
+            }
+        }.toMap()
+
+    private fun decodeIntSet(raw: String?): Set<Int> =
+        raw.orEmpty().split(',').mapNotNull { it.toIntOrNull() }.toSet()
 }
