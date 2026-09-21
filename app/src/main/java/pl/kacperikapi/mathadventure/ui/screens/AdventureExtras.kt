@@ -43,7 +43,6 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
     val stagePhotoRes = remember(stage.id) {
         context.resources.getIdentifier(stage.id, "drawable", context.packageName).takeIf { it != 0 }
     }
-    var resolvedAttribution by remember(stage.id) { mutableStateOf<CommonsPhotoAttribution?>(null) }
     var ttsReady by remember { mutableStateOf(false) }
     val ttsHolder = remember { mutableStateOf<TextToSpeech?>(null) }
 
@@ -129,15 +128,9 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
                             contentDescription = stage.name(language),
                             fallbackRes = world.heroArtRes,
                             modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                            onAttribution = { resolvedAttribution = it }
+                            onAttribution = { }
                         )
                     }
-                    Spacer(Modifier.height(7.dp))
-                    Text(
-                        resolvedAttribution?.credit(language) ?: attraction.credit(language),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = WoodBrown.copy(alpha = .82f)
-                    )
                     Spacer(Modifier.height(14.dp))
                     Text(attraction.description(language), color = Ink, fontSize = 17.sp, lineHeight = 24.sp)
                     Spacer(Modifier.height(12.dp))
@@ -174,7 +167,12 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
                         Text("🔊 ${storyLabel(language, "listen")}")
                     }
                     Box(Modifier.weight(1.25f)) {
-                        PrimaryGameButton(stringResource(R.string.start_mission), onStart, Modifier.fillMaxWidth())
+                        PrimaryGameButton(
+                            stringResource(R.string.start_mission),
+                            onStart,
+                            Modifier.fillMaxWidth(),
+                            textSizeSp = 20
+                        )
                     }
                 }
             }
@@ -196,7 +194,7 @@ private fun storyLabel(language: String, key: String): String {
             "es" -> "La foto real se descarga al verla por primera vez y queda guardada para verla sin conexión."
             "it" -> "La foto reale viene scaricata alla prima apertura e resta sul dispositivo per la visualizzazione offline."
             "sk" -> "Skutočná fotografia sa stiahne pri prvom zobrazení a potom zostane v zariadení na použitie offline."
-            else -> "Prawdziwe zdjęcie jest pobierane przy pierwszym otwarciu tej karty, a potem zostaje na urządzeniu do oglądania offline."
+            else -> "Prawdziwe zdjęcie jest już wgrane i zostaje na urządzeniu."
         }
         else -> key
     }
