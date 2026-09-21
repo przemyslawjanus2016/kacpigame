@@ -34,6 +34,8 @@ import pl.kacperikapi.mathadventure.ui.theme.*
 fun WorldSelectScreen(
     progress: GameProgress,
     premiumUnlocked: Boolean,
+    activeProfileName: String,
+    onProfile: () -> Unit,
     onWorld: (Int) -> Unit,
     onPremium: () -> Unit,
     onPractice: () -> Unit,
@@ -52,7 +54,17 @@ fun WorldSelectScreen(
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             ResourceBar(progress = progress, onSettingsClick = onSettings)
             GameTitle(compact = !tablet)
-            Spacer(Modifier.height(12.dp))
+            TextButton(
+                onClick = onProfile,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(
+                    "👤 $activeProfileName  •  Zmień gracza",
+                    fontWeight = FontWeight.Black,
+                    color = AdventureGreen
+                )
+            }
+            Spacer(Modifier.height(8.dp))
             if (tablet) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     HeroPanel(Modifier.weight(.9f))
