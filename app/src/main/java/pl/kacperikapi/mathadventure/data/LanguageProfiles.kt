@@ -17,29 +17,16 @@ data class LanguageProfile(
 
 object AppLanguages {
     val supported = listOf(
-        LanguageProfile("pl", "PL", "Polski", "Polska", "🇵🇱", "Warszawa", "PLN", "zł", "Wawel", Locale("pl", "PL")),
-        LanguageProfile("en", "EN", "English", "United Kingdom", "🇬🇧", "London", "GBP", "£", "Big Ben", Locale.UK),
-        LanguageProfile("de", "DE", "Deutsch", "Deutschland", "🇩🇪", "Berlin", "EUR", "€", "Brandenburger Tor", Locale.GERMANY),
-        LanguageProfile("es", "ES", "Español", "España", "🇪🇸", "Madrid", "EUR", "€", "Sagrada Família", Locale("es", "ES")),
-        LanguageProfile("it", "IT", "Italiano", "Italia", "🇮🇹", "Roma", "EUR", "€", "Colosseo", Locale.ITALY),
-        LanguageProfile("sk", "SK", "Slovenčina", "Slovensko", "🇸🇰", "Bratislava", "EUR", "€", "Bratislavský hrad", Locale("sk", "SK"))
+        LanguageProfile("pl", "PL", "Polski", "Polska", "🇵🇱", "Warszawa", "PLN", "zł", "Wawel", Locale("pl", "PL"))
     )
 
-    fun normalize(tag: String?): String {
-        val short = tag.orEmpty().substringBefore('-').lowercase()
-        return supported.firstOrNull { it.tag == short }?.tag ?: "pl"
-    }
+    fun normalize(tag: String?): String = "pl"
 
-    fun profile(tag: String?): LanguageProfile =
-        supported.first { it.tag == normalize(tag) }
+    fun profile(tag: String?): LanguageProfile = supported.first()
 
-    fun next(tag: String?): String {
-        val current = normalize(tag)
-        val index = supported.indexOfFirst { it.tag == current }.coerceAtLeast(0)
-        return supported[(index + 1) % supported.size].tag
-    }
+    fun next(tag: String?): String = "pl"
 
-    fun label(tag: String?): String = profile(tag).shortLabel
+    fun label(tag: String?): String = "PL"
 
-    fun allLabels(): String = supported.joinToString(" • ") { it.shortLabel }
+    fun allLabels(): String = "PL"
 }
