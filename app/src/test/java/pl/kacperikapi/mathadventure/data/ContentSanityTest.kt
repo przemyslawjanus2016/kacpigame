@@ -23,8 +23,10 @@ class ContentSanityTest {
     }
 
     @Test
-    fun sixLanguagesAreConfigured() {
-        assertEquals(listOf("pl", "en", "de", "es", "it", "sk"), AppLanguages.supported.map { it.tag })
+    fun onlyPolishLanguageIsConfigured() {
+        assertEquals(listOf("pl"), AppLanguages.supported.map { it.tag })
+        assertEquals("pl", AppLanguages.normalize("en"))
+        assertEquals("pl", AppLanguages.next("pl"))
         assertTrue(AppLanguages.supported.all { it.currencyCode.isNotBlank() && it.capital.isNotBlank() && it.ttsLocale.language.isNotBlank() })
     }
 
