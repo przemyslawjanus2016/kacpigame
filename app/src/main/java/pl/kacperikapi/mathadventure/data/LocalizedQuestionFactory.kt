@@ -482,11 +482,11 @@ object LocalizedQuestionFactory {
         val questions = mutableListOf<NativeSeed>()
         questions += NativeSeed(4,
             tr(lang,"Która flaga jest flagą Twojego kraju?","Which is your country's flag?","Welche Flagge gehört zu deinem Land?","¿Cuál es la bandera de tu país?","Qual è la bandiera del tuo paese?","Ktorá vlajka patrí tvojej krajine?"),
-            p.countryFlag, AppLanguages.supported.filter { it.tag != lang }.shuffled(random).take(3).map { it.countryFlag },
+            p.countryFlag, listOf("🇬🇧", "🇩🇪", "🇪🇸", "🇮🇹", "🇸🇰").filter { it != p.countryFlag }.shuffled(random).take(3),
             tr(lang,"Rozpoznaj kolory i układ flagi.","Recognise the colours and layout of the flag.","Erkenne Farben und Anordnung der Flagge.","Reconoce los colores y la forma de la bandera.","Riconosci i colori e la disposizione della bandiera.","Spoznaj farby a usporiadanie vlajky."))
         questions += NativeSeed(5,
             tr(lang,"Jaka jest stolica: ${p.countryName}?","What is the capital of ${p.countryName}?","Wie heißt die Hauptstadt von ${p.countryName}?","¿Cuál es la capital de ${p.countryName}?","Qual è la capitale di ${p.countryName}?","Aké je hlavné mesto krajiny ${p.countryName}?"),
-            p.capital, AppLanguages.supported.filter { it.tag != lang }.shuffled(random).take(3).map { it.capital },
+            p.capital, listOf("Londyn", "Berlin", "Madryt", "Rzym", "Bratysława").filter { it != p.capital }.shuffled(random).take(3),
             tr(lang,"To najważniejsze miasto państwa.","It is the country's capital city.","Es ist die Hauptstadt des Landes.","Es la ciudad capital del país.","È la capitale del paese.","Je to hlavné mesto krajiny."))
         questions += NativeSeed(6,
             tr(lang,"Jakiej waluty używa się w Twoim kraju?","Which currency is used in your country?","Welche Währung wird in deinem Land verwendet?","¿Qué moneda se usa en tu país?","Quale valuta si usa nel tuo paese?","Aká mena sa používa v tvojej krajine?"),
@@ -494,7 +494,7 @@ object LocalizedQuestionFactory {
             "${p.currencySymbol} = ${p.currencyCode}")
         questions += NativeSeed(6,
             tr(lang,"Który zabytek kojarzy się z Twoim krajem?","Which landmark belongs to your country?","Welche Sehenswürdigkeit gehört zu deinem Land?","¿Qué monumento pertenece a tu país?","Quale monumento appartiene al tuo paese?","Ktorá pamiatka patrí k tvojej krajine?"),
-            p.landmark, AppLanguages.supported.filter { it.tag != lang }.shuffled(random).take(3).map { it.landmark },
+            p.landmark, listOf("Big Ben", "Brama Brandenburska", "Sagrada Família", "Koloseum", "Zamek Bratysławski").filter { it != p.landmark }.shuffled(random).take(3),
             tr(lang,"Pomyśl o znanych miejscach swojego kraju.","Think about famous places in your country.","Denke an berühmte Orte deines Landes.","Piensa en lugares famosos de tu país.","Pensa ai luoghi famosi del tuo paese.","Mysli na známe miesta svojej krajiny."))
         questions += NativeSeed(7,
             tr(lang,"Która stolica leży we Włoszech?","Which capital city is in Italy?","Welche Hauptstadt liegt in Italien?","¿Qué capital está en Italia?","Quale capitale si trova in Italia?","Ktoré hlavné mesto je v Taliansku?"),
