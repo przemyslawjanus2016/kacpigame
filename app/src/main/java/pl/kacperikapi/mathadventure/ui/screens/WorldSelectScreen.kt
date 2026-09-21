@@ -41,8 +41,7 @@ fun WorldSelectScreen(
     onPassport: () -> Unit,
     onRewards: () -> Unit,
     onParent: () -> Unit,
-    onSettings: () -> Unit,
-    onLanguage: () -> Unit
+    onSettings: () -> Unit
 ) {
     BoxWithConstraints(
         Modifier.fillMaxSize()
@@ -51,7 +50,7 @@ fun WorldSelectScreen(
     ) {
         val tablet = maxWidth >= 700.dp
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            ResourceBar(progress = progress, onLanguageClick = onLanguage, onSettingsClick = onSettings)
+            ResourceBar(progress = progress, onSettingsClick = onSettings)
             GameTitle(compact = !tablet)
             Spacer(Modifier.height(12.dp))
             if (tablet) {
