@@ -73,11 +73,10 @@ class ProgressStore(context: Context) {
         editor.apply()
     }
 
-    fun loadLanguage(): String =
-        AppLanguages.normalize(safeString("language", "pl"))
+    fun loadLanguage(): String = "pl"
 
     fun saveLanguage(tag: String) {
-        prefs.edit().putString("language", AppLanguages.normalize(tag)).apply()
+        prefs.edit().putString("language", "pl").apply()
     }
 
     fun loadNarratorEnabled(): Boolean = safeBoolean("narrator", true)
