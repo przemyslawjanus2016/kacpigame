@@ -124,6 +124,7 @@ class MainActivity : ComponentActivity() {
 
 private sealed interface Screen {
     data object Splash : Screen
+    data object Profiles : Screen
     data object Worlds : Screen
     data class Map(val worldId: Int) : Screen
     data class Story(val worldId: Int, val stageNumber: Int) : Screen
@@ -144,6 +145,7 @@ private fun GameApp(
     activity: Activity
 ) {
     var screen by remember { mutableStateOf<Screen>(Screen.Splash) }
+    var profiles by remember { mutableStateOf(store.profiles()) }
     var progress by remember { mutableStateOf(store.load()) }
     var narratorEnabled by remember { mutableStateOf(store.loadNarratorEnabled()) }
     var soundEnabled by remember { mutableStateOf(store.loadSoundEnabled()) }
@@ -168,9 +170,14 @@ private fun GameApp(
         store.save(newProgress)
     }
 
-    BackHandler(enabled = screen != Screen.Worlds && screen != Screen.Splash) {
+    BackHandler(
+        enabled = screen != Screen.Worlds &&
+            screen != Screen.Splash &&
+            !(screen == Screen.Profiles && store.activeProfile() == null)
+    ) {
         screen = when (val current = screen) {
-            Screen.Splash -> Screen.Worlds
+            Screen.Splash -> Screen.Profiles
+            Screen.Profiles -> Screen.Worlds
             Screen.Worlds -> Screen.Worlds
             is Screen.Map -> Screen.Worlds
             is Screen.Story -> Screen.Map(current.worldId)
@@ -221,10 +228,46 @@ private fun GameApp(
     }
 
     when (val current = screen) {
-        Screen.Splash -> SplashScreen { screen = Screen.Worlds }
+        Screen.Splash -> SplashScreen { screen = Screen.Profiles }
+        Screen.Profiles -> ProfileSelectScreen(
+            profiles = profiles,
+            activeProfileId = store.activeProfileId(),
+            onSelect = { profile ->
+                store.selectProfile(profile.id)
+                progress = store.load()
+                selectedStages = GameContent.worlds.associate {
+                    it.id to progress.availableMaxStage(it.id).coerceAtLeast(1)
+                }
+                progressionNotice = null
+                screen = Screen.Worlds
+            },
+            onAdd = { name ->
+                store.addProfile(name)
+                profiles = store.profiles()
+                progress = store.load()
+                selectedStages = GameContent.worlds.associate { it.id to 1 }
+                progressionNotice = null
+                screen = Screen.Worlds
+            },
+            onDelete = { profile ->
+                store.deleteProfile(profile.id)
+                profiles = store.profiles()
+                progress = store.load()
+                selectedStages = GameContent.worlds.associate {
+                    it.id to progress.availableMaxStage(it.id).coerceAtLeast(1)
+                }
+                progressionNotice = null
+            },
+            onBack = if (store.activeProfile() != null) ({ screen = Screen.Worlds }) else null
+        )
         Screen.Worlds -> WorldSelectScreen(
             progress = progress,
             premiumUnlocked = billingState.premiumUnlocked,
+            activeProfileName = store.activeProfile()?.name ?: "Gracz",
+            onProfile = {
+                profiles = store.profiles()
+                screen = Screen.Profiles
+            },
             onWorld = { worldId ->
                 when {
                     PremiumAccess.shouldShowPaywall(worldId, billingState.premiumUnlocked) -> screen = Screen.Premium
