@@ -203,17 +203,17 @@ private fun GameApp(
     }
 
     if (screen == Screen.Worlds && updateStatus is PlayUpdateChecker.Status.Available && !updatePromptDismissed) {
-        AlertDialog(
+        androidx.compose.material3.AlertDialog(
             onDismissRequest = { updatePromptDismissed = true },
             title = { Text("Dostępna aktualizacja", fontWeight = FontWeight.Black) },
             text = { Text("W Google Play jest dostępna nowsza wersja gry.") },
             confirmButton = {
-                Button(onClick = { PlayUpdateChecker.openPlayStore(activity) }) {
+                androidx.compose.material3.Button(onClick = { PlayUpdateChecker.openPlayStore(activity) }) {
                     Text("Aktualizuj")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { updatePromptDismissed = true }) {
+                androidx.compose.material3.TextButton(onClick = { updatePromptDismissed = true }) {
                     Text("Później")
                 }
             }
