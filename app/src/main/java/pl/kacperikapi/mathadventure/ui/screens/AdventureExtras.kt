@@ -111,6 +111,16 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
 
             ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 900.dp)) {
                 if (attraction != null) {
+                    Surface(shape = RoundedCornerShape(14.dp), color = AdventureGreen.copy(alpha = .10f)) {
+                        Text(
+                            "${story.emoji} ${story.title(language)}",
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 9.dp),
+                            color = AdventureGreen,
+                            fontWeight = FontWeight.Black,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
                     if (stagePhotoRes != null) {
                         Image(
                             painter = painterResource(stagePhotoRes),
@@ -226,6 +236,122 @@ fun PassportScreen(progress: GameProgress, onBack: () -> Unit) {
                         }
                     }
                 }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+fun ExplorerAlbumScreen(progress: GameProgress, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val language = "pl"
+    val discovered = GameContent.worlds.sumOf { world ->
+        world.stages.count { progress.isStageCompleted(it) }
+    }
+
+    Box(
+        Modifier.fillMaxSize()
+            .background(Brush.verticalGradient(listOf(SkyBlue.copy(.24f), Cream, Parchment)))
+            .statusBarsPadding()
+    ) {
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(Modifier.fillMaxWidth()) {
+                TextButton(onClick = onBack) { Text("← ${stringResource(R.string.back)}") }
+            }
+            Text("📸 ${stringResource(R.string.explorer_album)}", fontSize = 30.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
+            Text(
+                stringResource(R.string.explorer_album_desc),
+                color = WoodBrown,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(10.dp))
+            Surface(shape = RoundedCornerShape(18.dp), color = BrightGreen.copy(.14f)) {
+                Text(
+                    "🗺️ Odkryte miejsca: $discovered / ${GameContent.worlds.size * GameRules.STAGES_PER_WORLD}",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    color = AdventureGreen,
+                    fontWeight = FontWeight.Black
+                )
+            }
+            Spacer(Modifier.height(18.dp))
+
+            GameContent.worlds.forEach { world ->
+                val worldDiscovered = world.stages.count { progress.isStageCompleted(it) }
+                ParchmentCard(Modifier.fillMaxWidth().widthIn(max = 900.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(world.icon, fontSize = 28.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(world.nameRes), fontSize = 21.sp, fontWeight = FontWeight.Black, color = Ink)
+                            Text("$worldDiscovered/${GameRules.STAGES_PER_WORLD} odkrytych miejsc", color = WoodBrown, fontSize = 13.sp)
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+
+                    world.stages.chunked(2).forEach { row ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            row.forEach { stage ->
+                                val unlocked = progress.isStageCompleted(stage)
+                                val attraction = AttractionContent.forStage(stage)
+                                val photoRes = context.resources.getIdentifier(stage.id, "drawable", context.packageName)
+                                Surface(
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(18.dp),
+                                    color = if (unlocked) Color.White.copy(alpha = .88f) else LockedGrey.copy(alpha = .10f)
+                                ) {
+                                    Column {
+                                        if (unlocked && photoRes != 0) {
+                                            Image(
+                                                painter = painterResource(photoRes),
+                                                contentDescription = stage.name(language),
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxWidth().aspectRatio(16f / 10f)
+                                            )
+                                        } else {
+                                            Box(
+                                                Modifier.fillMaxWidth().aspectRatio(16f / 10f).background(LockedGrey.copy(alpha = .10f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(if (unlocked) world.icon else "🔒", fontSize = 36.sp)
+                                            }
+                                        }
+                                        Column(Modifier.padding(10.dp)) {
+                                            Text(
+                                                if (unlocked) stage.name(language) else "Etap ${stage.number} • Nieodkryte miejsce",
+                                                fontWeight = FontWeight.Black,
+                                                color = if (unlocked) Ink else LockedGrey,
+                                                fontSize = 14.sp
+                                            )
+                                            if (unlocked && attraction != null) {
+                                                Spacer(Modifier.height(4.dp))
+                                                Text(
+                                                    attraction.fact(language),
+                                                    color = WoodBrown,
+                                                    fontSize = 11.sp,
+                                                    maxLines = 3
+                                                )
+                                                Spacer(Modifier.height(5.dp))
+                                                Text(
+                                                    "⭐ ${progress.stageStars(stage)}/3",
+                                                    color = ActionOrange,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (row.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                        Spacer(Modifier.height(10.dp))
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
             }
             Spacer(Modifier.height(20.dp))
         }
