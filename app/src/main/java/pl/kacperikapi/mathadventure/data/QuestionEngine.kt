@@ -44,9 +44,9 @@ class QuestionEngine(
         (stage.targetAge + adaptiveAgeOffset).coerceIn(GameRules.MIN_AGE, GameRules.MAX_AGE)
 
     private fun difficultyOffset(stats: CategoryStats?): Int = when {
-        stats == null || stats.solved < 8 -> 0
-        stats.accuracyPercent >= 90 -> 1
-        stats.accuracyPercent < 60 -> -1
+        stats == null || stats.solved < 6 -> 0
+        stats.accuracyPercent >= 92 -> 1
+        stats.accuracyPercent <= 58 -> -1
         else -> 0
     }
 
@@ -55,10 +55,19 @@ class QuestionEngine(
         performance: Map<LearningCategory, CategoryStats>
     ): LearningCategory {
         val pool = buildList {
-            repeat(3) { addAll(stage.categories) }
+            repeat(4) { addAll(stage.categories) }
             addAll(LearningCategory.entries)
-            performance.forEach { (category, stats) ->
-                if (stats.solved >= 5 && stats.accuracyPercent < 70) repeat(2) { add(category) }
+
+            LearningCategory.entries.forEach { category ->
+                val stats = performance[category] ?: CategoryStats()
+
+                if (stats.solved < 10) repeat(2) { add(category) }
+
+                when {
+                    stats.solved >= 5 && stats.accuracyPercent < 55 -> repeat(6) { add(category) }
+                    stats.solved >= 5 && stats.accuracyPercent < 70 -> repeat(4) { add(category) }
+                    stats.solved >= 5 && stats.accuracyPercent < 80 -> repeat(2) { add(category) }
+                }
             }
         }
         return pool.random(random)
@@ -445,8 +454,47 @@ class QuestionEngine(
     private fun logic(stage: Stage, age: Int): LearningQuestion = when (age) {
         4 -> listOf(::simplePattern, ::oddEmoji, ::numberOrder).random(random)(stage)
         5 -> listOf(::simplePattern, ::oddEmoji, ::numberOrder, ::easySequence).random(random)(stage)
-        6 -> listOf(::simplePattern, ::numberOrder, ::easySequence, ::memoryPattern).random(random)(stage)
-        else -> listOf(::simplePattern, ::numberOrder, ::easySequence, ::memoryPattern, ::analogyQuestion).random(random)(stage)
+        6 -> listOf(::simplePattern, ::numberOrder, ::easySequence, ::memoryPattern, ::matchingMiniGame).random(random)(stage)
+        else -> listOf(::simplePattern, ::numberOrder, ::easySequence, ::memoryPattern, ::analogyQuestion, ::matchingMiniGame).random(random)(stage)
+    }
+
+    private fun matchingMiniGame(stage: Stage): LearningQuestion {
+        val sets = listOf(
+            listOf(
+                MatchPair("🐶", "🐶", "pies", "dog"),
+                MatchPair("🐱", "🐱", "kot", "cat"),
+                MatchPair("🐟", "🐟", "ryba", "fish")
+            ),
+            listOf(
+                MatchPair("☀️", "☀️", "dzień", "day"),
+                MatchPair("🌙", "🌙", "noc", "night"),
+                MatchPair("🌧️", "🌧️", "deszcz", "rain")
+            ),
+            listOf(
+                MatchPair("2 + 2", "2 + 2", "4", "4"),
+                MatchPair("3 + 2", "3 + 2", "5", "5"),
+                MatchPair("5 − 2", "5 − 2", "3", "3")
+            ),
+            listOf(
+                MatchPair("🏔️", "🏔️", "góry", "mountains"),
+                MatchPair("🌊", "🌊", "woda", "water"),
+                MatchPair("🌳", "🌳", "las", "forest")
+            )
+        )
+        val pairs = sets.random(random)
+        return LearningQuestion(
+            id = "logic:matching:${stage.id}:${pairs.joinToString("|") { it.leftPl + "-" + it.rightPl }}",
+            category = LearningCategory.LOGIC,
+            type = QuestionType.MATCHING,
+            promptPl = "Połącz elementy w pasujące pary.",
+            promptEn = "Match the items into correct pairs.",
+            optionsPl = pairs.map { it.rightPl },
+            optionsEn = pairs.map { it.rightEn },
+            correctIndex = 0,
+            hintPl = "Sprawdź znaczenie, obrazek albo wynik działania.",
+            hintEn = "Look for the matching meaning, picture or result.",
+            pairs = pairs
+        )
     }
 
     private fun simplePattern(stage: Stage): LearningQuestion {
