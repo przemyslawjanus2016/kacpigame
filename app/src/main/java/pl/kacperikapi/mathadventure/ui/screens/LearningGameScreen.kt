@@ -202,6 +202,19 @@ private fun QuestionCard(
 ) {
     ParchmentCard(modifier.fillMaxWidth()) {
         Text("${categoryIcon(question.category, language)} ${categoryLabel(question.category)}", color = AdventureGreen, fontWeight = FontWeight.Bold)
+        val modeLabel = when (question.type) {
+            QuestionType.MATCHING -> "🔗 Łączenie par"
+            QuestionType.ORDERING -> "↕️ Układanie kolejności"
+            QuestionType.MEMORY -> "🧠 Zapamiętaj"
+            QuestionType.IMAGE_CHOICE -> "🖼️ Wybór obrazkowy"
+            QuestionType.SEQUENCE -> "🧩 Dokończ wzór"
+            QuestionType.TRUE_FALSE -> "✅ Prawda czy fałsz"
+            else -> null
+        }
+        modeLabel?.let {
+            Spacer(Modifier.height(3.dp))
+            Text(it, color = ActionOrange, fontWeight = FontWeight.Black, fontSize = 13.sp)
+        }
         if (question.type != QuestionType.MEMORY) {
             question.visual?.let {
                 Text(it, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 45.sp)
@@ -222,6 +235,9 @@ private fun QuestionCard(
             QuestionType.MATCHING -> MatchingTask(question, language, answered, onResolved)
             QuestionType.ORDERING -> OrderingTask(question, language, answered, onResolved)
             QuestionType.MEMORY -> MemoryTask(question, language, answered, onResolved)
+            QuestionType.IMAGE_CHOICE -> ImageChoiceTask(question, language, answered, onResolved)
+            QuestionType.SEQUENCE -> SequenceTask(question, language, answered, onResolved)
+            QuestionType.TRUE_FALSE -> TrueFalseTask(question, language, answered, onResolved)
             else -> ChoiceTask(question, language, answered, onResolved)
         }
 
@@ -262,6 +278,98 @@ private fun ChoiceTask(question: LearningQuestion, language: String, answered: B
                 disabledContentColor = Color.White
             )
         ) { Text(option, fontSize = 18.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center) }
+    }
+}
+
+@Composable
+private fun ImageChoiceTask(
+    question: LearningQuestion,
+    language: String,
+    answered: Boolean,
+    onResolved: (Boolean) -> Unit
+) {
+    val options = question.options(language)
+    options.chunked(2).forEach { row ->
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            row.forEach { option ->
+                val index = options.indexOf(option)
+                val correct = answered && index == question.correctIndex
+                Button(
+                    onClick = { onResolved(index == question.correctIndex) },
+                    enabled = !answered,
+                    modifier = Modifier.weight(1f).heightIn(min = 82.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (correct) BrightGreen else SkyBlue,
+                        disabledContainerColor = if (correct) BrightGreen else SkyBlue.copy(alpha = .78f),
+                        disabledContentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        option,
+                        fontSize = if (option.length <= 3) 30.sp else 18.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            if (row.size == 1) Spacer(Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun SequenceTask(
+    question: LearningQuestion,
+    language: String,
+    answered: Boolean,
+    onResolved: (Boolean) -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = ActionOrange.copy(alpha = .10f)
+    ) {
+        Text(
+            "Znajdź regułę i wybierz element, który pasuje jako następny.",
+            modifier = Modifier.padding(11.dp),
+            color = WoodBrown,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+    Spacer(Modifier.height(9.dp))
+    ImageChoiceTask(question, language, answered, onResolved)
+}
+
+@Composable
+private fun TrueFalseTask(
+    question: LearningQuestion,
+    language: String,
+    answered: Boolean,
+    onResolved: (Boolean) -> Unit
+) {
+    val options = question.options(language)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        options.take(2).forEachIndexed { index, option ->
+            Button(
+                onClick = { onResolved(index == question.correctIndex) },
+                enabled = !answered,
+                modifier = Modifier.weight(1f).heightIn(min = 72.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (index == 0) AdventureGreen else ActionOrange
+                )
+            ) {
+                Text(
+                    (if (index == 0) "✅ " else "❌ ") + option,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
