@@ -3,7 +3,7 @@
 Gra edukacyjno-podróżnicza na Androida (Kotlin + Jetpack Compose), przygotowywana na telefon, tablet i publikację w Google Play.
 
 ## 0.5.0 – główne zmiany
-- **7 światów × 7 aktywnych etapów = 49 misji kampanii**,
+- **7 światów × 10 etapów = 70 misji kampanii**,
 - zakres trudności **4–8 lat**,
 - etap 1 zaczyna się od najprostszych zadań przedszkolnych, a kolejne etapy stopniowo podnoszą poziom,
 - kliknięcie punktu na mapie otwiera najpierw kartę **Poznaj to miejsce** z prawdziwym zdjęciem, opisem i ciekawostką, dopiero potem można rozpocząć misję,
@@ -75,7 +75,7 @@ Założenia publikacyjne:
 
 ## Funkcje
 - 7 światów: Wieliczka, Kraków, Tatry, Rzym, Londyn, Mediolan, Malta,
-- 49 aktywnych etapów,
+- 70 aktywnych etapów,
 - matematyka, polski, angielski, logika, przyroda, wiedza o świecie, życie codzienne,
 - paszport podróżnika,
 - nagrody i gwiazdki,
