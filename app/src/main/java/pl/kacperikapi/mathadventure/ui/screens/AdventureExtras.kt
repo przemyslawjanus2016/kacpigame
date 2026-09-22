@@ -145,12 +145,6 @@ fun StoryScreen(stage: Stage, onStart: () -> Unit, onBack: () -> Unit) {
                     Surface(shape = RoundedCornerShape(16.dp), color = AdventureGreen.copy(alpha = .10f)) {
                         Text("🐾 ${story.text(language)}", modifier = Modifier.padding(12.dp), color = Ink)
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        storyLabel(language, "photo_offline"),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = WoodBrown
-                    )
                 } else {
                     Text("${story.emoji} ${story.title(language)}", fontSize = 24.sp, fontWeight = FontWeight.Black, color = AdventureGreen)
                     Spacer(Modifier.height(8.dp))
@@ -188,14 +182,6 @@ private fun storyLabel(language: String, key: String): String {
         "age" -> when (l) { "en" -> "Difficulty: around age %d"; "de" -> "Schwierigkeit: etwa %d Jahre"; "es" -> "Nivel: alrededor de %d años"; "it" -> "Livello: circa %d anni"; "sk" -> "Úroveň: približne %d rokov"; else -> "Poziom: około %d lat" }
         "did_you_know" -> when (l) { "en" -> "Did you know?"; "de" -> "Wusstest du?"; "es" -> "¿Sabías que…?"; "it" -> "Lo sapevi?"; "sk" -> "Vedeli ste, že?"; else -> "Czy wiesz, że?" }
         "listen" -> when (l) { "en" -> "Listen"; "de" -> "Anhören"; "es" -> "Escuchar"; "it" -> "Ascolta"; "sk" -> "Vypočuť"; else -> "Posłuchaj" }
-        "photo_offline" -> when (l) {
-            "en" -> "The real photo is downloaded on first view and then kept on the device for offline viewing."
-            "de" -> "Das echte Foto wird beim ersten Anzeigen geladen und danach für die Offline-Nutzung auf dem Gerät gespeichert."
-            "es" -> "La foto real se descarga al verla por primera vez y queda guardada para verla sin conexión."
-            "it" -> "La foto reale viene scaricata alla prima apertura e resta sul dispositivo per la visualizzazione offline."
-            "sk" -> "Skutočná fotografia sa stiahne pri prvom zobrazení a potom zostane v zariadení na použitie offline."
-            else -> "Prawdziwe zdjęcie jest już wgrane i zostaje na urządzeniu."
-        }
         else -> key
     }
 }
