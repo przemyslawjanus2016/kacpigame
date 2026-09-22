@@ -206,7 +206,9 @@ object GameContent {
         }
 
     fun story(stage: Stage): StoryBeat {
-        val worldNamePl = listOf("Wieliczka", "Kraków", "Tatry", "Rzym", "Londyn", "Mediolan", "Malta")[stage.worldId - 1]
+        val worldGenPl = listOf("Wieliczki", "Krakowa", "Tatr", "Rzymu", "Londynu", "Mediolanu", "Malty")[stage.worldId - 1]
+        val worldLocPl = listOf("Wieliczce", "Krakowie", "Tatrach", "Rzymie", "Londynie", "Mediolanie", "Malcie")[stage.worldId - 1]
+        val worldAccPl = listOf("Wieliczkę", "Kraków", "Tatry", "Rzym", "Londyn", "Mediolan", "Maltę")[stage.worldId - 1]
         val worldNameEn = listOf("Wieliczka", "Krakow", "Tatras", "Rome", "London", "Milan", "Malta")[stage.worldId - 1]
         val facts = when (stage.worldId) {
             1 -> listOf(
@@ -254,12 +256,37 @@ object GameContent {
             6 -> listOf("Milan is one of northern Italy's most important cities.", "Milan Cathedral is a huge Gothic cathedral in the city centre.", "La Scala is one of the world's most famous opera houses.")
             else -> listOf("Malta lies in the Mediterranean Sea.", "Valletta is the capital of Malta.", "Mdina is known as the Silent City.")
         }
+        val interactionsPl = listOf(
+            "Kapi zatrzymuje się i zaczyna węszyć. — Kapi, chyba coś znalazłeś! — mówi Kacper. Razem ruszają przez $worldAccPl w stronę miejsca: ${stage.namePl}.",
+            "— Patrz, Kapi, kolejny punkt na mapie $worldGenPl! — woła Kacper. Kapi merda ogonem i prowadzi prosto do miejsca: ${stage.namePl}.",
+            "Kapi pierwszy zauważa nowy ślad. Kacper śmieje się: — Wiedziałem, że można na ciebie liczyć! W $worldLocPl czeka na nich kolejna zagadka.",
+            "— Gotowy na następne wyzwanie? — pyta Kacper. Kapi odpowiada krótkim „hau!” i obaj ruszają dalej przez $worldAccPl.",
+            "Kacper przygląda się mapie $worldGenPl. — Jeśli dobrze czytam wskazówkę, następny przystanek to ${stage.namePl}. Kapi już biegnie kilka kroków przed nim.",
+            "Kapi krąży wokół Kacpra i zerka w stronę kolejnej trasy. — Dobra, partnerze, sprawdzamy ${stage.namePl}! — mówi Kacper.",
+            "— Mamy nową wskazówkę! — cieszy się Kacper. Kapi podskakuje, a ich przygoda w $worldLocPl prowadzi do miejsca: ${stage.namePl}.",
+            "Kapi nadstawia uszy. Kacper pokazuje mu punkt na mapie: — Właśnie tam idziemy. Przed nami ${stage.namePl} i nowe zadania.",
+            "— Coraz lepiej znamy $worldAccPl! — mówi Kacper. Kapi energicznie merda ogonem, bo przed nimi już ${stage.namePl}.",
+            "To ważny punkt wyprawy w $worldLocPl. Kacper daje Kapiemu piątkę łapą: — Razem damy radę! Czas odkryć ${stage.namePl}."
+        )
+        val interactionsEn = listOf(
+            "Kapi stops and sniffs the trail. “I think you found something!” says Kacper. Together they head through $worldNameEn toward ${stage.nameEn}.",
+            "“Look, Kapi, another point on the map!” calls Kacper. Kapi wags his tail and leads the way to ${stage.nameEn}.",
+            "Kapi spots the next clue first. Kacper laughs: “I knew I could count on you!” Another challenge is waiting in $worldNameEn.",
+            "“Ready for the next challenge?” asks Kacper. Kapi answers with a quick bark and they set off again.",
+            "Kacper studies the map. “If I read the clue correctly, our next stop is ${stage.nameEn}.” Kapi is already a few steps ahead.",
+            "Kapi circles Kacper and looks toward the next trail. “All right, partner — let's check out ${stage.nameEn}!” says Kacper.",
+            "“We have a new clue!” Kacper cheers. Kapi jumps excitedly as their adventure in $worldNameEn continues toward ${stage.nameEn}.",
+            "Kapi pricks up his ears. Kacper points to the map: “That's where we're going.” ${stage.nameEn} and new tasks are ahead.",
+            "“We're getting to know $worldNameEn really well!” says Kacper. Kapi wags his tail because ${stage.nameEn} is next.",
+            "This is an important stop in their journey. Kacper gives Kapi a paw-high-five: “Together we can do it!” Time to discover ${stage.nameEn}."
+        )
         val factIndex = (stage.number - 1) % facts.size
+        val interactionIndex = (stage.number - 1) % interactionsPl.size
         return StoryBeat(
             titlePl = "Ślad prowadzi do: ${stage.namePl}",
             titleEn = "The trail leads to: ${stage.nameEn}",
-            textPl = "Kapi złapał trop! Kacper sprawdza mapę i ruszają dalej przez $worldNamePl. Rozwiąż zadania, aby odkryć kolejne miejsce.",
-            textEn = "Kapi found a new clue! Kacper checks the map and they continue through $worldNameEn. Solve the tasks to discover the next place.",
+            textPl = interactionsPl[interactionIndex],
+            textEn = interactionsEn[interactionIndex],
             factPl = facts[factIndex],
             factEn = factsEn[factIndex],
             emoji = when (stage.worldId) { 1 -> "🧂"; 2 -> "🐉"; 3 -> "🏔️"; 4 -> "🏛️"; 5 -> "🚌"; 6 -> "🎨"; else -> "⛵" }
