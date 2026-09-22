@@ -73,6 +73,25 @@ class ContentSanityTest {
         })
     }
     @Test
+    fun everyStageHasAnAttractionCardForTheExplorerAlbum() {
+        val expectedIds = GameContent.worlds.flatMap { world -> world.stages.map { it.id } }.toSet()
+        val actualIds = AttractionContent.all().map { it.stageId }.toSet()
+        assertEquals(70, actualIds.size)
+        assertEquals(expectedIds, actualIds)
+    }
+
+    @Test
+    fun everyWorldHasTenDistinctStoryChapters() {
+        GameContent.worlds.forEach { world ->
+            val stories = world.stages.map { GameContent.story(it) }
+            assertEquals(GameRules.STAGES_PER_WORLD, stories.map { it.titlePl }.distinct().size)
+            assertTrue(stories.first().titlePl.contains("1/10"))
+            assertTrue(stories.last().titlePl.contains("10/10"))
+            assertTrue(stories.last().titlePl.contains("Finał"))
+        }
+    }
+
+    @Test
     fun kapiAndKacperStoryInteractionsHaveVarietyAndCorrectWieliczkaForms() {
         val texts = (1..GameRules.STAGES_PER_WORLD).map { stageNumber ->
             GameContent.story(GameContent.stage(1, stageNumber)).textPl
