@@ -7,7 +7,7 @@ import kotlin.random.Random
  * Age-aware question engine for children aged 4–8.
  *
  * Stage 1 starts with preschool-level counting, shapes, picture vocabulary and very
- * simple logic. Difficulty rises gradually across seven stages, while the adaptive
+ * simple logic. Difficulty rises gradually across ten stages, while the adaptive
  * offset can move at most one age step up or down based on the child's results.
  */
 class QuestionEngine(
