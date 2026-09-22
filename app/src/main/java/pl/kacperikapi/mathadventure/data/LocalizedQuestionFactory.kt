@@ -544,8 +544,9 @@ object LocalizedQuestionFactory {
             else -> {
                 val days = dayNames(lang)
                 val i = random.nextInt(0, days.lastIndex)
+                val dayForQuestionPl = if (AppLanguages.normalize(lang) == "pl") dayNamesAfterPl()[i] else days[i]
                 textQuestion("loc:$lang:daily:day:$i:${stage.number}", LearningCategory.DAILY,
-                    tr(lang,"Jaki dzień jest po: ${days[i]}?","Which day comes after ${days[i]}?","Welcher Tag kommt nach ${days[i]}?","¿Qué día viene después de ${days[i]}?","Quale giorno viene dopo ${days[i]}?","Ktorý deň nasleduje po ${days[i]}?"),
+                    tr(lang,"Jaki dzień jest po $dayForQuestionPl?","Which day comes after ${days[i]}?","Welcher Tag kommt nach ${days[i]}?","¿Qué día viene después de ${days[i]}?","Quale giorno viene dopo ${days[i]}?","Ktorý deň nasleduje po ${days[i]}?"),
                     days[i+1], days.filterIndexed { index, _ -> index != i+1 }.shuffled(random).take(3),
                     tr(lang,"Przypomnij sobie kolejność dni tygodnia.","Recall the order of the days of the week.","Erinnere dich an die Reihenfolge der Wochentage.","Recuerda el orden de los días de la semana.","Ricorda l'ordine dei giorni della settimana.","Spomeň si na poradie dní v týždni."), random, "📅")
             }
@@ -560,6 +561,9 @@ object LocalizedQuestionFactory {
         "sk" -> listOf("pondelok","utorok","streda","štvrtok","piatok","sobota","nedeľa")
         else -> listOf("poniedziałek","wtorek","środa","czwartek","piątek","sobota","niedziela")
     }
+
+    private fun dayNamesAfterPl(): List<String> =
+        listOf("poniedziałku","wtorku","środzie","czwartku","piątku","sobocie","niedzieli")
 
     private fun tr(lang: String, pl: String, en: String, de: String, es: String, it: String, sk: String): String = when (AppLanguages.normalize(lang)) {
         "en" -> en
