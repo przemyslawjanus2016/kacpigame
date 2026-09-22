@@ -58,19 +58,29 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew clean bundleRelease
 
+      - name: Read app version
+        id: app_version
+        shell: bash
+        run: |
+          VERSION="$(tr -d '\r\n ' < VERSION.txt)"
+          test -n "$VERSION" || { echo "VERSION.txt is empty"; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Prepare Play bundle
         shell: bash
+        env:
+          APP_VERSION: ${{ steps.app_version.outputs.version }}
         run: |
           mkdir -p dist
           AAB_PATH="$(find app/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' | head -n 1)"
           test -n "$AAB_PATH" || { echo "Release AAB not found"; exit 1; }
-          cp "$AAB_PATH" "dist/KacperKapi-Play-v0.5.10.aab"
-          jarsigner -verify "dist/KacperKapi-Play-v0.5.10.aab"
+          cp "$AAB_PATH" "dist/KacperKapi-Play-v$APP_VERSION.aab"
+          jarsigner -verify "dist/KacperKapi-Play-v$APP_VERSION.aab"
 
       - name: Upload Google Play AAB
         uses: actions/upload-artifact@v4
         with:
-          name: KacperKapi-Play-v0.5.10
-          path: dist/KacperKapi-Play-v0.5.10.aab
+          name: KacperKapi-Play-v${{ steps.app_version.outputs.version }}
+          path: dist/KacperKapi-Play-v${{ steps.app_version.outputs.version }}.aab
           if-no-files-found: error
           retention-days: 14
