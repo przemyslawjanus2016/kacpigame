@@ -132,6 +132,7 @@ private sealed interface Screen {
     data class Game(val worldId: Int, val stageNumber: Int, val category: LearningCategory?, val daily: Boolean = false) : Screen
     data object DailyIntro : Screen
     data object Passport : Screen
+    data object Album : Screen
     data object Rewards : Screen
     data object Parent : Screen
     data object Settings : Screen
@@ -185,6 +186,7 @@ private fun GameApp(
             is Screen.Game -> if (current.daily) Screen.DailyIntro else Screen.Map(current.worldId)
             Screen.DailyIntro -> Screen.Worlds
             Screen.Passport -> Screen.Worlds
+            Screen.Album -> Screen.Worlds
             Screen.Rewards -> Screen.Worlds
             Screen.Parent -> Screen.Worlds
             Screen.Settings -> Screen.Worlds
@@ -286,6 +288,7 @@ private fun GameApp(
             },
             onDaily = { screen = Screen.DailyIntro },
             onPassport = { screen = Screen.Passport },
+            onAlbum = { screen = Screen.Album },
             onRewards = { screen = Screen.Rewards },
             onParent = { screen = Screen.Parent },
             onSettings = { screen = Screen.Settings }
@@ -426,6 +429,7 @@ private fun GameApp(
             onBack = { screen = Screen.Worlds }
         )
         Screen.Passport -> PassportScreen(progress) { screen = Screen.Worlds }
+        Screen.Album -> ExplorerAlbumScreen(progress) { screen = Screen.Worlds }
         Screen.Rewards -> RewardsScreen(progress) { screen = Screen.Worlds }
         Screen.Parent -> ParentScreen(
             progress = progress,
