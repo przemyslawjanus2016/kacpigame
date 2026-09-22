@@ -41,6 +41,7 @@ fun WorldSelectScreen(
     onPractice: () -> Unit,
     onDaily: () -> Unit,
     onPassport: () -> Unit,
+    onAlbum: () -> Unit,
     onRewards: () -> Unit,
     onParent: () -> Unit,
     onSettings: () -> Unit
@@ -84,7 +85,7 @@ fun WorldSelectScreen(
                     Text("🔐 ${stringResource(R.string.premium_unlock_title)}", fontWeight = FontWeight.Black)
                 }
             }
-            ActionGrid(onDaily, onPassport, onPractice, onRewards, onParent)
+            ActionGrid(onDaily, onPassport, onPractice, onRewards, onParent, onAlbum)
             Spacer(Modifier.height(22.dp))
         }
     }
@@ -191,7 +192,14 @@ private fun WorldCard(
 }
 
 @Composable
-private fun ActionGrid(onDaily: () -> Unit, onPassport: () -> Unit, onPractice: () -> Unit, onRewards: () -> Unit, onParent: () -> Unit) {
+private fun ActionGrid(
+    onDaily: () -> Unit,
+    onPassport: () -> Unit,
+    onPractice: () -> Unit,
+    onRewards: () -> Unit,
+    onParent: () -> Unit,
+    onAlbum: () -> Unit
+) {
     Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SmallAction("🎁", stringResource(R.string.daily_mission), onDaily, Modifier.weight(1f))
@@ -201,7 +209,7 @@ private fun ActionGrid(onDaily: () -> Unit, onPassport: () -> Unit, onPractice: 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SmallAction("🏆", stringResource(R.string.rewards), onRewards, Modifier.weight(1f))
             SmallAction("👨‍👩‍👦", stringResource(R.string.parent), onParent, Modifier.weight(1f))
-            Spacer(Modifier.weight(1f))
+            SmallAction("📸", stringResource(R.string.explorer_album), onAlbum, Modifier.weight(1f))
         }
     }
 }
