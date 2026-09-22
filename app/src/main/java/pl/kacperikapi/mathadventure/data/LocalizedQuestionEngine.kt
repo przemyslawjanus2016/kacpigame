@@ -31,9 +31,9 @@ class LocalizedQuestionEngine(
         val category = fixedCategory ?: baseQuestion.category
         val stats = performance[category]
         val offset = when {
-            stats == null || stats.solved < 8 -> 0
-            stats.accuracyPercent >= 90 -> 1
-            stats.accuracyPercent < 60 -> -1
+            stats == null || stats.solved < 6 -> 0
+            stats.accuracyPercent >= 92 -> 1
+            stats.accuracyPercent <= 58 -> -1
             else -> 0
         }
         val age = (stage.targetAge + offset).coerceIn(GameRules.MIN_AGE, GameRules.MAX_AGE)
