@@ -177,13 +177,13 @@ fun LearningGameScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CharacterCard(Modifier.weight(.55f))
+                    CharacterCard(question.id, answered, wasCorrect, Modifier.weight(.55f))
                     QuestionCard(question, language, answered, wasCorrect, ::resolve, ::nextQuestion, Modifier.weight(1f))
                 }
             } else {
                 QuestionCard(question, language, answered, wasCorrect, ::resolve, ::nextQuestion)
                 Spacer(Modifier.height(12.dp))
-                CharacterCard(Modifier.fillMaxWidth())
+                CharacterCard(question.id, answered, wasCorrect, Modifier.fillMaxWidth())
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -351,7 +351,42 @@ private fun OrderingTask(question: LearningQuestion, language: String, answered:
 }
 
 @Composable
-private fun CharacterCard(modifier: Modifier = Modifier) {
+private fun CharacterCard(
+    questionId: String,
+    answered: Boolean,
+    wasCorrect: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val messages = when {
+        answered && wasCorrect -> listOf(
+            "Kacper: Super! Kapi też wiedział, że dasz radę. 🐾",
+            "Kapi: Hau! Kacper: Dokładnie tak — świetna odpowiedź!",
+            "Kacper: Brawo! Kapi już wypatruje następnego zadania.",
+            "Kapi merda ogonem. Kacper: Punkt dla naszej drużyny!",
+            "Kacper: Świetnie policzone! Kapi daje łapę na zgodę.",
+            "Kapi: Hau, hau! Kacper: Tak jest — lecimy dalej!"
+        )
+        answered -> listOf(
+            "Kacper: Sprawdźmy to jeszcze raz. Kapi zostaje z nami do końca.",
+            "Kapi przekrzywia głowę. Kacper: Już wiemy więcej — następne pójdzie lepiej.",
+            "Kacper: Dobra próba. Zobacz poprawną odpowiedź i zapamiętajmy ją razem.",
+            "Kapi siada obok. Kacper: Uczymy się właśnie na takich zadaniach.",
+            "Kacper: Było blisko. Kapi mówi „hau”, czyli: próbujemy dalej!",
+            "Kapi patrzy uważnie. Kacper: Zapamiętujemy wskazówkę i ruszamy dalej."
+        )
+        else -> listOf(
+            "Kacper: Przeczytajmy uważnie. Kapi już węszy za odpowiedzią!",
+            "Kapi: Hau! Kacper: Spokojnie — najpierw pomyślmy, potem wybieramy.",
+            "Kacper: Dasz radę. Kapi pilnuje, żeby żadna wskazówka nam nie uciekła.",
+            "Kapi nadstawia uszy. Kacper: Co tu będzie najważniejszą wskazówką?",
+            "Kacper: Spróbujmy wykluczyć złe odpowiedzi. Kapi zaczyna od tej najbardziej podejrzanej!",
+            "Kapi już gotowy. Kacper: Twoja kolej — pokaż, co potrafisz!"
+        )
+    }
+    val message = remember(questionId, answered, wasCorrect) {
+        messages[(questionId.hashCode() and Int.MAX_VALUE) % messages.size]
+    }
+
     Surface(modifier, shape = RoundedCornerShape(22.dp), color = Color.White.copy(.72f)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
@@ -360,7 +395,13 @@ private fun CharacterCard(modifier: Modifier = Modifier) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxWidth().aspectRatio(1f)
             )
-            Text(stringResource(R.string.kapi_encouragement), modifier = Modifier.padding(10.dp), color = WoodBrown, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(
+                message,
+                modifier = Modifier.padding(10.dp),
+                color = WoodBrown,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
