@@ -210,6 +210,51 @@ object GameContent {
         val worldLocPl = listOf("Wieliczce", "Krakowie", "Tatrach", "Rzymie", "Londynie", "Mediolanie", "Malcie")[stage.worldId - 1]
         val worldAccPl = listOf("Wieliczkę", "Kraków", "Tatry", "Rzym", "Londyn", "Mediolan", "Maltę")[stage.worldId - 1]
         val worldNameEn = listOf("Wieliczka", "Krakow", "Tatras", "Rome", "London", "Milan", "Malta")[stage.worldId - 1]
+
+        val worldGoalPl = when (stage.worldId) {
+            1 -> "Złoty Kryształ Soli"
+            2 -> "Smoczy Medalion"
+            3 -> "Odznaka Górskiego Odkrywcy"
+            4 -> "Mapa Wiecznego Miasta"
+            5 -> "Znaki Londyńskiego Podróżnika"
+            6 -> "Szkic Mistrza Mediolanu"
+            else -> "Kompas Siedmiu Wysp"
+        }
+        val worldGoalEn = when (stage.worldId) {
+            1 -> "Golden Salt Crystal"
+            2 -> "Dragon Medallion"
+            3 -> "Mountain Explorer Badge"
+            4 -> "Map of the Eternal City"
+            5 -> "London Traveller Signs"
+            6 -> "Milan Master's Sketch"
+            else -> "Compass of the Seven Islands"
+        }
+
+        val chapterPl = listOf(
+            "Pierwszy trop",
+            "Znak na mapie",
+            "Ukryta wskazówka",
+            "Tajemniczy symbol",
+            "Połowa drogi",
+            "Nowy kierunek",
+            "Elementy układanki",
+            "Już blisko",
+            "Ostatnia wskazówka",
+            "Finał wyprawy"
+        )
+        val chapterEn = listOf(
+            "First clue",
+            "Mark on the map",
+            "Hidden hint",
+            "Mysterious symbol",
+            "Halfway there",
+            "New direction",
+            "Pieces fit together",
+            "Almost there",
+            "Final clue",
+            "Adventure finale"
+        )
+
         val facts = when (stage.worldId) {
             1 -> listOf(
                 "Wieliczka od setek lat jest związana z wydobyciem soli.",
@@ -256,35 +301,37 @@ object GameContent {
             6 -> listOf("Milan is one of northern Italy's most important cities.", "Milan Cathedral is a huge Gothic cathedral in the city centre.", "La Scala is one of the world's most famous opera houses.")
             else -> listOf("Malta lies in the Mediterranean Sea.", "Valletta is the capital of Malta.", "Mdina is known as the Silent City.")
         }
+
         val interactionsPl = listOf(
-            "Kapi zatrzymuje się i zaczyna węszyć. — Kapi, chyba coś znalazłeś! — mówi Kacper. Razem ruszają przez $worldAccPl w stronę miejsca: ${stage.namePl}.",
-            "— Patrz, Kapi, kolejny punkt na mapie $worldGenPl! — woła Kacper. Kapi merda ogonem i prowadzi prosto do miejsca: ${stage.namePl}.",
-            "Kapi pierwszy zauważa nowy ślad. Kacper śmieje się: — Wiedziałem, że można na ciebie liczyć! W $worldLocPl czeka na nich kolejna zagadka.",
-            "— Gotowy na następne wyzwanie? — pyta Kacper. Kapi odpowiada krótkim „hau!” i obaj ruszają dalej przez $worldAccPl.",
-            "Kacper przygląda się mapie $worldGenPl. — Jeśli dobrze czytam wskazówkę, następny przystanek to ${stage.namePl}. Kapi już biegnie kilka kroków przed nim.",
-            "Kapi krąży wokół Kacpra i zerka w stronę kolejnej trasy. — Dobra, partnerze, następny punkt to: ${stage.namePl}! — mówi Kacper.",
-            "— Mamy nową wskazówkę! — cieszy się Kacper. Kapi podskakuje, a ich przygoda w $worldLocPl prowadzi do miejsca: ${stage.namePl}.",
-            "Kapi nadstawia uszy. Kacper pokazuje mu punkt na mapie: — Właśnie tam idziemy. Przed nami ${stage.namePl} i nowe zadania.",
-            "— Coraz lepiej znamy $worldAccPl! — mówi Kacper. Kapi energicznie merda ogonem, bo przed nimi już ${stage.namePl}.",
-            "To ważny punkt wyprawy w $worldLocPl. Kacper daje Kapiemu piątkę łapą: — Razem damy radę! Czas na kolejny punkt wyprawy: ${stage.namePl}."
+            "Kacper pokazuje Kapiemu pierwszą kartę wyprawy. — Zaczynamy! — mówi. Kapi łapie trop, a oni ruszają przez $worldAccPl. Cel całej wyprawy: $worldGoalPl. Pierwszy punkt to: ${stage.namePl}.",
+            "Kapi znajduje znak, którego wcześniej nie było na mapie. Kacper porównuje go z planem $worldGenPl. — To druga wskazówka! — mówi. Prowadzi ich do miejsca: ${stage.namePl}.",
+            "W $worldLocPl Kapi zatrzymuje się nagle i zaczyna węszyć. Kacper odkrywa kolejny fragment zagadki. — Dobrze idziemy, partnerze. Następny punkt: ${stage.namePl}.",
+            "Kacper obraca znaleziony symbol i pokazuje go Kapiemu. — Ten znak wskazuje dalej przez $worldAccPl. — Kapi merda ogonem, a na mapie pojawia się: ${stage.namePl}.",
+            "Kacper liczy zebrane wskazówki, a Kapi pilnuje plecaka. — Jesteśmy w połowie drogi do celu: $worldGoalPl. — Kolejny etap wyprawy to: ${stage.namePl}.",
+            "Kapi pierwszy zauważa, że trop zmienia kierunek. Kacper sprawdza mapę $worldGenPl. — Dobra robota! Nowa trasa prowadzi do miejsca: ${stage.namePl}.",
+            "Kacper układa obok siebie dotychczasowe wskazówki, a Kapi dotyka łapą pasującego fragmentu. — Układanka zaczyna mieć sens. W $worldLocPl musimy teraz sprawdzić: ${stage.namePl}.",
+            "Kapi biegnie kilka kroków do przodu i wraca podekscytowany. Kacper uśmiecha się: — Jesteśmy już blisko celu: $worldGoalPl. Następny punkt to: ${stage.namePl}.",
+            "Kacper znajduje ostatni brakujący znak, a Kapi szczeka jakby chciał powiedzieć „mamy to!”. — Został już tylko finał. Najpierw sprawdzamy: ${stage.namePl}.",
+            "Wszystkie wskazówki łączą się w całość. Kacper i Kapi kończą wyprawę po $worldLocPl. — Udało się! — mówi Kacper. Finałowy punkt: ${stage.namePl}. Cel odkryty: $worldGoalPl."
         )
         val interactionsEn = listOf(
-            "Kapi stops and sniffs the trail. “I think you found something!” says Kacper. Together they head through $worldNameEn toward ${stage.nameEn}.",
-            "“Look, Kapi, another point on the map!” calls Kacper. Kapi wags his tail and leads the way to ${stage.nameEn}.",
-            "Kapi spots the next clue first. Kacper laughs: “I knew I could count on you!” Another challenge is waiting in $worldNameEn.",
-            "“Ready for the next challenge?” asks Kacper. Kapi answers with a quick bark and they set off again.",
-            "Kacper studies the map. “If I read the clue correctly, our next stop is ${stage.nameEn}.” Kapi is already a few steps ahead.",
-            "Kapi circles Kacper and looks toward the next trail. “All right, partner — let's check out ${stage.nameEn}!” says Kacper.",
-            "“We have a new clue!” Kacper cheers. Kapi jumps excitedly as their adventure in $worldNameEn continues toward ${stage.nameEn}.",
-            "Kapi pricks up his ears. Kacper points to the map: “That's where we're going.” ${stage.nameEn} and new tasks are ahead.",
-            "“We're getting to know $worldNameEn really well!” says Kacper. Kapi wags his tail because ${stage.nameEn} is next.",
-            "This is an important stop in their journey. Kacper gives Kapi a paw-high-five: “Together we can do it!” Time to discover ${stage.nameEn}."
+            "Kacper shows Kapi the first expedition card. “We're starting!” Kapi catches the trail and they set off through $worldNameEn. Their goal: $worldGoalEn. First stop: ${stage.nameEn}.",
+            "Kapi finds a mark that was not on the map before. Kacper checks it carefully. “That's our second clue!” It leads them to ${stage.nameEn}.",
+            "Kapi suddenly stops and sniffs the ground. Kacper discovers another piece of the mystery. “We're on the right track, partner.” Next stop: ${stage.nameEn}.",
+            "Kacper turns the strange symbol around and shows it to Kapi. “This points further ahead.” Kapi wags his tail. The next place is ${stage.nameEn}.",
+            "Kacper counts the clues while Kapi guards the backpack. “We're halfway to $worldGoalEn.” The next stage is ${stage.nameEn}.",
+            "Kapi notices first that the trail changes direction. Kacper checks the map. “Good job!” The new route leads to ${stage.nameEn}.",
+            "Kacper lays out all the clues and Kapi taps the matching piece with his paw. “The puzzle is starting to make sense.” Now they need to check ${stage.nameEn}.",
+            "Kapi runs a few steps ahead and comes back excited. Kacper smiles. “We're very close to $worldGoalEn.” Next stop: ${stage.nameEn}.",
+            "Kacper finds the final missing mark and Kapi barks as if to say, “We've got it!” Only the finale remains. First: ${stage.nameEn}.",
+            "All the clues finally connect. Kacper and Kapi finish their journey through $worldNameEn. “We did it!” says Kacper. Final stop: ${stage.nameEn}. Goal discovered: $worldGoalEn."
         )
+
         val factIndex = (stage.number - 1) % facts.size
-        val interactionIndex = (stage.number - 1) % interactionsPl.size
+        val interactionIndex = (stage.number - 1).coerceIn(0, interactionsPl.lastIndex)
         return StoryBeat(
-            titlePl = "Ślad prowadzi do: ${stage.namePl}",
-            titleEn = "The trail leads to: ${stage.nameEn}",
+            titlePl = "Rozdział ${stage.number}/${GameRules.STAGES_PER_WORLD} • ${chapterPl[interactionIndex]}",
+            titleEn = "Chapter ${stage.number}/${GameRules.STAGES_PER_WORLD} • ${chapterEn[interactionIndex]}",
             textPl = interactionsPl[interactionIndex],
             textEn = interactionsEn[interactionIndex],
             factPl = facts[factIndex],
