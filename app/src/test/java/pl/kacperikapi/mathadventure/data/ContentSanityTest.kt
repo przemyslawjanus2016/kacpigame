@@ -7,10 +7,10 @@ import org.junit.Test
 
 class ContentSanityTest {
     @Test
-    fun hasSevenWorldsAndFortyNineStages() {
+    fun hasSevenWorldsAndSeventyStages() {
         assertEquals(7, GameContent.worlds.size)
         assertTrue(GameContent.worlds.all { it.stages.size == GameRules.STAGES_PER_WORLD })
-        assertEquals(49, GameContent.worlds.sumOf { it.stages.size })
+        assertEquals(70, GameContent.worlds.sumOf { it.stages.size })
     }
 
     @Test
@@ -73,9 +73,14 @@ class ContentSanityTest {
         })
     }
     @Test
-    fun kapiTrailWordingUsesZlapalTrop() {
-        val text = GameContent.story(GameContent.stage(1, 1)).textPl
-        assertTrue(text.contains("Kapi złapał trop!"))
-        assertTrue(!text.contains("Kapi znalazł trop"))
+    fun kapiAndKacperStoryInteractionsHaveVarietyAndCorrectWieliczkaForms() {
+        val texts = (1..GameRules.STAGES_PER_WORLD).map { stageNumber ->
+            GameContent.story(GameContent.stage(1, stageNumber)).textPl
+        }
+        assertTrue(texts.distinct().size >= 8)
+        assertTrue(texts.all { it.contains("Kapi") && it.contains("Kacper") })
+        assertTrue(texts.any { it.contains("Wieliczkę") })
+        assertTrue(texts.any { it.contains("Wieliczki") })
+        assertTrue(texts.any { it.contains("Wieliczce") })
     }
 }
