@@ -650,16 +650,17 @@ class QuestionEngine(
     }
 
     private fun daysQuestion(stage: Stage): LearningQuestion {
-        val daysPl = listOf("poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota", "niedziela")
+        val daysPlNom = listOf("poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota", "niedziela")
+        val daysPlAfter = listOf("poniedziałku", "wtorku", "środzie", "czwartku", "piątku", "sobocie", "niedzieli")
         val daysEn = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
         val index = random.nextInt(0, 6)
-        val optionsPl = listOf(daysPl[index + 1], daysPl[index], daysPl[(index + 2) % 7], daysPl[(index + 3) % 7])
+        val optionsPl = listOf(daysPlNom[index + 1], daysPlNom[index], daysPlNom[(index + 2) % 7], daysPlNom[(index + 3) % 7])
         val optionsEn = listOf(daysEn[index + 1], daysEn[index], daysEn[(index + 2) % 7], daysEn[(index + 3) % 7])
         return shuffledQuestion(
-            id = "daily:day:${daysPl[index]}",
+            id = "daily:day:${daysPlNom[index]}",
             category = LearningCategory.DAILY,
             type = QuestionType.CHOICE,
-            promptPl = "Jaki dzień jest po ${daysPl[index]}?",
+            promptPl = "Jaki dzień jest po ${daysPlAfter[index]}?",
             promptEn = "Which day comes after ${daysEn[index]}?",
             optionsPl = optionsPl,
             optionsEn = optionsEn,
