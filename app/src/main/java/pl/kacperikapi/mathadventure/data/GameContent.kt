@@ -262,11 +262,11 @@ object GameContent {
             "Kapi pierwszy zauważa nowy ślad. Kacper śmieje się: — Wiedziałem, że można na ciebie liczyć! W $worldLocPl czeka na nich kolejna zagadka.",
             "— Gotowy na następne wyzwanie? — pyta Kacper. Kapi odpowiada krótkim „hau!” i obaj ruszają dalej przez $worldAccPl.",
             "Kacper przygląda się mapie $worldGenPl. — Jeśli dobrze czytam wskazówkę, następny przystanek to ${stage.namePl}. Kapi już biegnie kilka kroków przed nim.",
-            "Kapi krąży wokół Kacpra i zerka w stronę kolejnej trasy. — Dobra, partnerze, sprawdzamy ${stage.namePl}! — mówi Kacper.",
+            "Kapi krąży wokół Kacpra i zerka w stronę kolejnej trasy. — Dobra, partnerze, następny punkt to: ${stage.namePl}! — mówi Kacper.",
             "— Mamy nową wskazówkę! — cieszy się Kacper. Kapi podskakuje, a ich przygoda w $worldLocPl prowadzi do miejsca: ${stage.namePl}.",
             "Kapi nadstawia uszy. Kacper pokazuje mu punkt na mapie: — Właśnie tam idziemy. Przed nami ${stage.namePl} i nowe zadania.",
             "— Coraz lepiej znamy $worldAccPl! — mówi Kacper. Kapi energicznie merda ogonem, bo przed nimi już ${stage.namePl}.",
-            "To ważny punkt wyprawy w $worldLocPl. Kacper daje Kapiemu piątkę łapą: — Razem damy radę! Czas odkryć ${stage.namePl}."
+            "To ważny punkt wyprawy w $worldLocPl. Kacper daje Kapiemu piątkę łapą: — Razem damy radę! Czas na kolejny punkt wyprawy: ${stage.namePl}."
         )
         val interactionsEn = listOf(
             "Kapi stops and sniffs the trail. “I think you found something!” says Kacper. Together they head through $worldNameEn toward ${stage.nameEn}.",
