@@ -93,8 +93,8 @@ object LocalizedQuestionFactory {
     private fun math(stage: Stage, age: Int, lang: String, random: Random): LearningQuestion {
         val profile = AppLanguages.profile(lang)
         val kind = when (age) {
-            4 -> listOf("count", "count", "add", "sub", "compare")
-            5 -> listOf("count", "add", "sub", "missing", "money", "compare")
+            4 -> listOf("add", "add", "sub", "compare", "missing")
+            5 -> listOf("add", "sub", "missing", "money", "compare", "add")
             6 -> listOf("add20", "sub20", "missing", "money", "story", "compare")
             7 -> listOf("add100", "sub100", "mul", "money", "story", "missing")
             else -> listOf("add100", "sub100", "mul", "div", "money", "story", "missing")
@@ -102,27 +102,6 @@ object LocalizedQuestionFactory {
 
         val maxValue = when (age) { 4 -> 5; 5 -> 10; 6 -> 20; 7 -> 100; else -> 100 }
         return when (kind) {
-            "count" -> {
-                val count = random.nextInt(1, if (age == 4) 7 else 11)
-                val emoji = listOf("⭐", "🍎", "🐾", "🌼", "🐟", "🟢").random(random)
-                numberQuestion(
-                    "loc:$lang:math:count:$count:${emoji.codePointAt(0)}",
-                    tr(lang,
-                        "Policz obrazki. Ile ich jest?",
-                        "Count the pictures. How many are there?",
-                        "Zähle die Bilder. Wie viele sind es?",
-                        "Cuenta los dibujos. ¿Cuántos hay?",
-                        "Conta le immagini. Quante sono?",
-                        "Spočítaj obrázky. Koľko ich je?"),
-                    count, 12,
-                    tr(lang,
-                        "Policz każdy obrazek po kolei.", "Count each picture one by one.",
-                        "Zähle jedes Bild der Reihe nach.", "Cuenta cada dibujo uno por uno.",
-                        "Conta ogni immagine una alla volta.", "Počítaj každý obrázok po jednom."),
-                    random,
-                    List(count) { emoji }.joinToString(" ")
-                )
-            }
             "compare" -> {
                 var a = random.nextInt(0, maxValue + 1)
                 var b = random.nextInt(0, maxValue + 1)
