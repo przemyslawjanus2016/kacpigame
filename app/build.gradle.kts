@@ -15,8 +15,8 @@ android {
         applicationId = "pl.janusdigital.kacperikapi"
         minSdk = 26
         targetSdk = 36
-        versionCode = 35
-        versionName = "0.6.1"
+        versionCode = 36
+        versionName = "0.6.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
