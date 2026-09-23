@@ -56,6 +56,24 @@ class ContentSanityTest {
     }
 
     @Test
+    fun earlyMathDoesNotUseAmbiguousPictureCountingPrompts() {
+        val stage = GameContent.stage(1, 1)
+        for (age in 4..5) {
+            repeat(80) { sample ->
+                val q = LocalizedQuestionFactory.generate(
+                    category = LearningCategory.MATH,
+                    stage = stage,
+                    age = age,
+                    language = "pl",
+                    random = Random(age * 1000 + sample)
+                )
+                assertTrue(!q.promptPl.contains("Policz obrazki", ignoreCase = true))
+                assertTrue(!q.id.contains("math:count"))
+            }
+        }
+    }
+
+    @Test
     fun englishBankIsLargeEnoughForVariety() {
         assertTrue(QuestionBank.englishWords.size >= 90)
         assertTrue(QuestionBank.englishWords.map { it.en }.distinct().size >= 90)
