@@ -725,18 +725,34 @@ class QuestionEngine(
         val correctEn = correctPl
         val wrongHours = listOf((hour % 12) + 1, ((hour + 1) % 12) + 1, ((hour + 5) % 12) + 1)
         val optionsPl = listOf(correctPl) + wrongHours.map { if (half) "$it:30" else "$it:00" }
+
+        val fullClock = listOf("🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛")
+        val halfClock = listOf("🕜", "🕝", "🕞", "🕟", "🕠", "🕡", "🕢", "🕣", "🕤", "🕥", "🕦", "🕧")
+        val nextHourNamePl = listOf(
+            "pierwszej", "drugiej", "trzeciej", "czwartej", "piątej", "szóstej",
+            "siódmej", "ósmej", "dziewiątej", "dziesiątej", "jedenastej", "dwunastej"
+        )[(hour % 12)]
+
         return shuffledQuestion(
             id = "daily:clock:$correctPl",
             category = LearningCategory.DAILY,
             type = QuestionType.CHOICE,
-            promptPl = if (half) "Która odpowiedź oznacza wpół do następnej godziny?" else "Wybierz godzinę $hour:00.",
-            promptEn = if (half) "Which answer shows half past $hour?" else "Choose $hour:00.",
+            promptPl = if (half) {
+                "Która godzina oznacza „wpół do $nextHourNamePl”?"
+            } else {
+                "Którą godzinę pokazuje zegar?"
+            },
+            promptEn = if (half) "Which answer shows half past $hour?" else "What time does the clock show?",
             optionsPl = optionsPl,
             optionsEn = optionsPl,
             correctIndex = 0,
-            hintPl = "Spójrz na godziny i minuty.",
-            hintEn = "Look at the hours and minutes.",
-            visual = "🕒"
+            hintPl = if (half) {
+                "„Wpół do $nextHourNamePl” oznacza 30 minut po poprzedniej pełnej godzinie."
+            } else {
+                "Dłuższa wskazówka na 12 oznacza pełną godzinę."
+            },
+            hintEn = "Look at the hour and minute hands.",
+            visual = if (half) halfClock[hour - 1] else fullClock[hour - 1]
         )
     }
 
