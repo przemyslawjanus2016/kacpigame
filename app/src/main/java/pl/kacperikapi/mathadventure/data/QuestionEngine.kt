@@ -6,7 +6,7 @@ import kotlin.random.Random
 /**
  * Age-aware question engine for children aged 4–8.
  *
- * Stage 1 starts with preschool-level counting, shapes, picture vocabulary and very
+ * Stage 1 starts with preschool-level arithmetic, comparisons, picture vocabulary and very
  * simple logic. Difficulty rises gradually across ten stages, while the adaptive
  * offset can move at most one age step up or down based on the child's results.
  */
@@ -87,14 +87,13 @@ class QuestionEngine(
 
     private fun math(stage: Stage, age: Int): LearningQuestion {
         val kinds = when (age) {
-            4 -> listOf("count", "count", "add5", "sub5", "compare10")
-            5 -> listOf("count", "add10", "sub10", "missing10", "compare20", "story10")
+            4 -> listOf("add5", "add5", "sub5", "compare10", "missing10")
+            5 -> listOf("add10", "sub10", "missing10", "compare20", "story10", "add10")
             6 -> listOf("add20", "sub20", "missing20", "money20", "story20", "compare50")
             7 -> listOf("add100", "sub100", "mulEasy", "money50", "story50", "missing50")
             else -> listOf("add100", "sub100", "mul", "div", "money100", "story100", "missing100")
         }
         return when (val kind = kinds.random(random)) {
-            "count" -> countingQuestion(stage, if (age == 4) 8 else 12)
             "add5" -> operationQuestion(stage, "+", 5)
             "sub5" -> operationQuestion(stage, "−", 5)
             "add10" -> operationQuestion(stage, "+", 10)
@@ -122,23 +121,6 @@ class QuestionEngine(
             "div" -> division(stage)
             else -> operationQuestion(stage, if (kind.contains("sub")) "−" else "+", 20)
         }
-    }
-
-    private fun countingQuestion(stage: Stage, maxCount: Int): LearningQuestion {
-        val emojis = listOf("⭐", "🐾", "🍎", "🧂", "🌼", "🔵", "🐟")
-        val emoji = emojis.random(random)
-        val count = random.nextInt(1, maxCount + 1)
-        return numericQuestion(
-            id = "math:count:${emoji.codePointAt(0)}:$count",
-            category = LearningCategory.MATH,
-            promptPl = "Policz obrazki. Ile ich jest?",
-            promptEn = "Count the pictures. How many are there?",
-            answer = count,
-            maxOption = maxCount + 2,
-            hintPl = "Dotykaj wzrokiem każdego obrazka po kolei.",
-            hintEn = "Count each picture one by one.",
-            visual = List(count) { emoji }.joinToString(" ")
-        )
     }
 
     private fun operationQuestion(stage: Stage, op: String, maxResult: Int): LearningQuestion {
