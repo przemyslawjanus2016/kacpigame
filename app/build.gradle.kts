@@ -102,3 +102,17 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
+
+afterEvaluate {
+    tasks.named("assembleDebug").configure {
+        dependsOn(":platformer:assembleDebug")
+        doLast {
+            copy {
+                from(project(":platformer").layout.buildDirectory.file("outputs/apk/debug/platformer-debug.apk"))
+                into(layout.buildDirectory.dir("outputs/apk/debug"))
+                rename("platformer-debug.apk", "app-debug.apk")
+            }
+        }
+    }
+}
