@@ -93,7 +93,22 @@ class PlatformerView(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        try {
+            drawFrame(canvas)
+        } catch (t: Throwable) {
+            canvas.drawColor(Color.rgb(25, 35, 50))
+            textPaint.color = Color.WHITE
+            textPaint.textAlign = Paint.Align.LEFT
+            textPaint.textSize = 24f
+            canvas.drawText("Błąd renderowania gry", 30f, 60f, textPaint)
+            textPaint.textSize = 16f
+            canvas.drawText(t.javaClass.simpleName + ": " + (t.message ?: "brak opisu"), 30f, 95f, textPaint)
+            textPaint.textSize = 14f
+            canvas.drawText("Uruchom grę ponownie. Jeśli błąd wróci, zrób zdjęcie tego ekranu.", 30f, 130f, textPaint)
+        }
+    }
 
+    private fun drawFrame(canvas: Canvas) {
         val now = System.nanoTime()
         var dt = if (lastFrameNanos == 0L) 0f else (now - lastFrameNanos) / 1_000_000_000f
         lastFrameNanos = now
