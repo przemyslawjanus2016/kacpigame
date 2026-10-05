@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "KacperKapiEducationalAdventure"
 include(":app")
+include(":platformer")
