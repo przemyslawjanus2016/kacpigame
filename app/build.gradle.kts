@@ -102,27 +102,3 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
-
-
-afterEvaluate {
-    tasks.named("assembleDebug").configure {
-        doLast {
-            val sdkRoot = File(System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT"))
-            val buildToolsRoot = File(sdkRoot, "build-tools")
-            val latestBuildTools = buildToolsRoot.listFiles()
-                ?.filter { it.isDirectory }
-                ?.maxByOrNull { it.name }
-                ?: error("Android build-tools not found")
-            val stage = File(layout.buildDirectory.get().asFile, "signing-export").apply {
-                deleteRecursively()
-                mkdirs()
-            }
-            File(latestBuildTools, "apksigner").copyTo(File(stage, "apksigner"), overwrite = true)
-            File(latestBuildTools, "lib/apksigner.jar").copyTo(File(stage, "apksigner.jar"), overwrite = true)
-            File(latestBuildTools, "zipalign").copyTo(File(stage, "zipalign"), overwrite = true)
-            val artifact = File(layout.buildDirectory.get().asFile, "outputs/apk/debug/app-debug.apk")
-            if (artifact.exists()) artifact.delete()
-            ant.invokeMethod("zip", mapOf("destfile" to artifact.absolutePath, "basedir" to stage.absolutePath))
-        }
-    }
-}
