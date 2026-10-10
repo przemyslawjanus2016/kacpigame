@@ -1,8 +1,7 @@
-name: One-time Actions artifact cleanup
+name: Daily Actions artifact cleanup
 on:
-  push:
-    paths:
-      - '.github/workflows/actions-storage-cleanup.yml'
+  schedule:
+    - cron: '17 3 * * *' # daily at 03:17 UTC
   workflow_dispatch:
 permissions:
   contents: read
